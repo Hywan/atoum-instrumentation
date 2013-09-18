@@ -4,6 +4,12 @@ namespace Hoathis\Instrumentation\Sequence {
 
 class Matching {
 
+    const TOKEN_ALL             = -1;
+    const TOKEN_ID              = 0;
+    const TOKEN_VALUE           = 1;
+    const TOKEN_LINE            = 2;
+    const SHIFT_REPLACEMENT_END = 0;
+
     protected $_sequence = null;
     protected $_index    = 0;
     protected $_max      = 0;
@@ -19,6 +25,18 @@ class Matching {
     }
 
     protected function setSequence ( Array $sequence ) {
+
+        for($i = 0, $max = count($sequence) - 1; $i <= $max; ++$i) {
+
+            $token = &$sequence[$i];
+
+            if(!is_array($token))
+                $token = array(
+                    -1,
+                    $token,
+                    0 < $i ? $sequence[$i - 1][2] : 0
+                );
+        }
 
         $old             = $this->_sequence;
         $this->_sequence = $sequence;
@@ -64,6 +82,9 @@ class Matching {
             $length  = 0;
             $matches = array();
 
+            if(true === $this->skipable($i))
+                continue;
+
             foreach($rules as $rule) {
 
                 list($pattern, $replace) = $rule;
@@ -76,7 +97,16 @@ class Matching {
                     $j <= $max && $i + $j < $this->_max;
                     ++$j) {
 
-                    $token    = $this->getToken($i + $j);
+                    if(true === $this->skipable($i + $j)) {
+
+                        ++$i;
+                        --$j;
+                        ++$length;
+
+                        continue;
+                    }
+
+                    $token    = &$this->getToken($i + $j);
                     $pToken   = $pattern[$j];
                     $_matches = null;
 
@@ -90,7 +120,14 @@ class Matching {
                             $_i <= $_max && ++$_length;
                             ++$_i) {
 
-                            $nextToken = $this->getToken($_i);
+                            if(true === $this->skipable($_i)) {
+
+                                $_matches .= $this->getToken($_i);
+
+                                continue;
+                            }
+
+                            $nextToken = &$this->getToken($_i);
                             $gotcha    = $pNextToken === $nextToken;
 
                             if(true === $gotcha) {
@@ -115,7 +152,6 @@ class Matching {
                             ++$length;
                             $_matches = $token;
                         }
-
                     }
 
                     if(false === $gotcha)
@@ -139,29 +175,49 @@ class Matching {
                     '#\\\(\d+)#',
                     function ( Array $m ) use ( $matches ) {
 
-                        var_dump($m);
+                        $x = $m[1] - 1;
 
-                        if(!isset($matches[$m[1]]))
+                        if(!isset($matches[$x]))
                             return null;
 
-                        return $matches[$m[1]];
+                        return $matches[$x];
                     },
                     $_tokens
                 );
 
             array_splice(
                 $this->_sequence,
-                $i,
+                $this->_index,
                 $length,
                 $set[1]
             );
+
+            if(   isset($set[2])
+               && static::SHIFT_REPLACEMENT_END === $set[2])
+                $this->_index += count($set[1]) - 1;
+
             $this->_max = count($this->_sequence);
         }
     }
 
-    protected function getToken ( $i ) {
+    protected function &getToken ( $i, $index = self::TOKEN_VALUE ) {
 
-        return $this->_sequence[$i];
+        $out = &$this->_sequence[$i];
+
+        if(static::TOKEN_ALL === $index)
+            return $out;
+
+        if(!is_array($out))
+            return $out;
+
+        $outt = $this->_sequence[$i][$index];
+
+        return $outt;
+    }
+
+    protected function skipable ( $index ) {
+
+        return in_array($this->getToken($index, static::TOKEN_ID), $this->_skip);
     }
 }
 
