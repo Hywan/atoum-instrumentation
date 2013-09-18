@@ -55,7 +55,7 @@ class Wrapper implements \Hoa\Stream\Wrapper\IWrapper\Stream,
         if(false === \Hoa\Stream\Filter::isRegistered('instrument'))
             \Hoa\Stream\Filter::register(
                 'instrument',
-                'Hoathis\Instrumentation\Filter'
+                'Hoathis\Instrumentation\Stream\Filter'
             );
 
         $path = substr($path, strlen('instrument://'));
