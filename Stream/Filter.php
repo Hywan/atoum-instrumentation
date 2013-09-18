@@ -15,8 +15,6 @@ namespace Hoathis\Instrumentation\Stream {
 
 class Filter extends \Hoa\Stream\Filter\LateComputed {
 
-    protected $_tokens = null;
-
     public function compute ( ) {
 
         $matching = new \Hoathis\Instrumentation\Sequence\Matching(
