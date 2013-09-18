@@ -3,7 +3,6 @@
 namespace {
 
 from('Hoa')
--> import('Stream.Filter.~')
 -> import('Stream.Filter.LateComputed');
 
 from('Hoathis')

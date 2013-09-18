@@ -4,7 +4,8 @@ namespace {
 
 from('Hoa')
 -> import('Stream.Wrapper.I~.Stream')
--> import('Stream.Wrapper.I~.File');
+-> import('Stream.Wrapper.I~.File')
+-> import('Stream.Filter.~');
 
 }
 
