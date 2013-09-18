@@ -65,9 +65,9 @@ resource. We can parameterize this filter through the URI, such as:
     instrument://criteria=node,condition,decision/resource=<file>
 
 The stream filter `Hoathis\Instrumentation\Stream\Filter` is a
-`Hoa\Stream\Filter\LateComputed` filter. Thus, we are able to compute the buffer
-when it contains all the content of the resource. The computation made by the
-filter is… instrumentation.
+[`Hoa\Stream\Filter\LateComputed`](https://github.com/hoaproject/Stream/blob/master/Filter/LateComputed.php)
+filter. Thus, we are able to compute the buffer when it contains all the content
+of the resource. The computation made by the filter is… instrumentation.
 
 Thus, when reading a resource through the `instrument://` wrapper, the content
 is instrumented on-the-fly. No cache, no special steps, only prefix
