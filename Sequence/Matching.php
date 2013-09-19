@@ -61,17 +61,6 @@ class Matching {
 
     public function match ( Array $rules ) {
 
-        foreach($rules as $rule) {
-
-            array_walk($rule[0], function ( &$value ) {
-
-                if(… === $value)
-                    $value = '…';
-            });
-
-            echo implode(', ', $rule[0]), ' => ', implode(', ', $rule[1]), "\n";
-        }
-
         // a rule cannot start by “…”.
         // “…” suivit de “…” est interdit (ou supprimé en un seul “…”).
 
@@ -112,17 +101,17 @@ class Matching {
 
                     if(… === $pToken) {
 
-                        $pNextToken  = $pattern[$j + 1];
-                        $_matches   .= $token;
-                        $_length     = 1;
+                        $pNextToken = $pattern[$j + 1];
+                        $_length    = 0;
+                        $_skipped   = null;
 
-                        for($_i = $i + $j + 1, $_max = $this->_max - 1;
+                        for($_i = $i + $j, $_max = $this->_max - 1;
                             $_i <= $_max && ++$_length;
                             ++$_i) {
 
                             if(true === $this->skipable($_i)) {
 
-                                $_matches .= $this->getToken($_i);
+                                $_skipped .= $this->getToken($_i);
 
                                 continue;
                             }
@@ -132,15 +121,24 @@ class Matching {
 
                             if(true === $gotcha) {
 
-                                $length    += $_length;
-                                $j          = $_i - $i;
-                                $matches[]  = $_matches;
-                                $_matches   = $nextToken;
+                                $length += $_length;
+                                ++$j;
+
+                                if(   isset($pattern[$j + 1])
+                                   && … === $pattern[$j + 1])
+                                    $i++;
+
+                                $matches[] = $_matches;
+                                $_matches  = $_skipped . $nextToken;
+                                $_skipped  = null;
 
                                 break;
                             }
-                            else
-                                $_matches .= $nextToken;
+                            else {
+
+                                $_matches .= $_skipped . $nextToken;
+                                $_skipped  = null;
+                            }
                         }
                     }
                     else {
