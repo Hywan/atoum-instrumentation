@@ -27,6 +27,19 @@ And a code like:
         $b  = 5;
     }
 
+    class Foobar {
+
+        public function firstMethod ( $x, $y = 5 ) {
+
+            $this->compute($x);
+
+            if($y < 5)
+                $this->compute($y);
+
+            return $x * $y;
+        }
+    }
+
     var_dump($a, $b);
 
 …is instrumented as:
@@ -40,6 +53,19 @@ And a code like:
 
         $a += 3;mark_line(__LINE__);
         $b  = 5;mark_line(__LINE__);
+    }
+
+    class Foobar {
+
+        public function firstMethod ( $x, $y = 5 ) { if(mole_exists(__CLASS__ . 'firstMethod')) return mole_call(__CLASS__ . 'firstMethod');
+
+            $this->compute($x);mark_line(__LINE__);
+
+            if(mark_cond($y < 5))
+                $this->compute($y);mark_line(__LINE__);
+
+            mark_line(__LINE__);return $x * $y;
+        }
     }
 
     var_dump($a, $b);mark_line(__LINE__);
