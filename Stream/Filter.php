@@ -23,7 +23,8 @@ class Filter extends \Hoa\Stream\Filter\LateComputed {
         $matching->match(array(
             array(
                 array('if', '(', …, ')'),
-                array('if', '(', 'mark_cond(', '\3', ')', ')')
+                array('if', '(', 'mark_cond(', '\3', ')', ')'),
+                $matching::SHIFT_REPLACEMENT_END
             ),
             array(
                 array('return', …, ';'),
@@ -33,6 +34,11 @@ class Filter extends \Hoa\Stream\Filter\LateComputed {
             array(
                 array(';'),
                 array(';', 'mark_line(__LINE__)', ';'),
+                $matching::SHIFT_REPLACEMENT_END
+            ),
+            array(
+                array('function', …, '(', …, '{'),
+                array('function ', '\2', ' ( ', '\4', ' {', ' if(mole_exists(__CLASS__ . \'\2\')) return mole_call(__CLASS__ . \'\2\');'),
                 $matching::SHIFT_REPLACEMENT_END
             )
         ));
