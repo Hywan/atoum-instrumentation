@@ -33,8 +33,10 @@ And a code like:
 
             $this->compute($x);
 
-            if($y < 5)
+            if($y < 5) {
+
                 $this->compute($y);
+            }
 
             return $x * $y;
         }
@@ -57,12 +59,14 @@ And a code like:
 
     class Foobar {
 
-        public function firstMethod ( $x, $y = 5 ) { if(mole_exists(__CLASS__ . 'firstMethod')) return mole_call(__CLASS__ . 'firstMethod');
+        public function firstMethod ( $x, $y = 5 ) { if(mole_exists(__CLASS__ . '::firstMethod')) return mole_call(__CLASS__ . '::firstMethod');
 
             $this->compute($x);mark_line(__LINE__);
 
-            if(mark_cond($y < 5))
+            if(mark_cond($y < 5)) {
+
                 $this->compute($y);mark_line(__LINE__);
+            }
 
             mark_line(__LINE__);return $x * $y;
         }

@@ -38,7 +38,7 @@ class Filter extends \Hoa\Stream\Filter\LateComputed {
             ),
             array(
                 array('function', …, '(', …, '{'),
-                array('function ', '\2', ' ( ', '\4', ' {', ' if(mole_exists(__CLASS__ . \'\2\')) return mole_call(__CLASS__ . \'\2\');'),
+                array('function ', '\2', ' ( ', '\4', ' {', ' if(mole_exists(__CLASS__ . \'::\2\')) return mole_call(__CLASS__ . \'::\2\');'),
                 $matching::SHIFT_REPLACEMENT_END
             )
         ));
