@@ -92,7 +92,17 @@ The second one is `Hoathis\Instrumentation\Stream\Wrapper` that enables the
 `instrument://` wrapper. Its role is to apply a stream filter on a certain
 resource. We can parameterize this filter through the URI, such as:
 
-    instrument://criteria=node,condition,decision/resource=<file>
+    instrument://criteria=<criteria>/resource=<file>
+
+Criteria (`criteria=…`) are option names concatenated by a comma with a `+` or a
+`-` to enable or disable it. By default, all options are enabled. The following
+example will diasble the “mole” instrumentation/rule:
+
+    instrument://criteria=-moles/resource=<file>
+
+The `criteria=…` part is optional.
+The `resource=<file>` part can be shortened to `<file>`. It is present for
+semantics only.
 
 The stream filter `Hoathis\Instrumentation\Stream\Filter` is a
 [`Hoa\Stream\Filter\LateComputed`](https://github.com/hoaproject/Stream/blob/master/Filter/LateComputed.php)
