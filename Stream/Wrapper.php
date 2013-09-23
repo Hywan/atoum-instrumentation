@@ -61,6 +61,39 @@ class Wrapper implements \Hoa\Stream\Wrapper\IWrapper\Stream,
 
         $path = substr($path, strlen('instrument://'));
 
+        preg_match(
+            '#^(?:criteria=(?<criteria>[^/]*)/)?(?:resource=)?(?<resource>[^$]+)$#',
+            $path,
+            $matches
+        );
+
+        $criteria   = $matches['criteria'];
+        $parameters = array(
+            'edges' => true,
+            'nodes' => true,
+            'moles' => true
+        );
+
+        if(!empty($criteria)) {
+
+            preg_match_all(
+                '#(?<flag>[+\-])?(?<option>\w+)#',
+                $criteria,
+                $submatches,
+                PREG_SET_ORDER
+            );
+
+            foreach($submatches as $submatch) {
+
+                if(!isset($parameters[$submatch['option']]))
+                    continue;
+
+                $parameters[$submatch['option']] = '-' !== $submatch['flag'];
+            }
+        }
+
+        $path = $matches['resource'];
+
         if(null === $this->context)
             $openedPath = fopen($path, $mode, $options & STREAM_USE_PATH);
         else
@@ -77,7 +110,8 @@ class Wrapper implements \Hoa\Stream\Wrapper\IWrapper\Stream,
         \Hoa\Stream\Filter::append(
             $this->_stream,
             'instrument',
-            \Hoa\Stream\Filter::READ
+            \Hoa\Stream\Filter::READ,
+            $parameters
         );
 
         return true;
