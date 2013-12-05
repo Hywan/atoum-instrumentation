@@ -1,18 +1,8 @@
 <?php
 
-namespace {
-
-from('Hoa')
--> import('Stream.Wrapper.I~.Stream')
--> import('Stream.Wrapper.I~.File')
--> import('Stream.Filter.~');
-
-}
-
 namespace Hoathis\Instrumentation\Stream {
 
-class Wrapper implements \Hoa\Stream\Wrapper\IWrapper\Stream,
-                         \Hoa\Stream\Wrapper\IWrapper\File {
+class Wrapper {
 
     private $_stream     = null;
     private $_streamName = null;
@@ -53,8 +43,8 @@ class Wrapper implements \Hoa\Stream\Wrapper\IWrapper\Stream,
 
     public function stream_open ( $path, $mode, $options, &$openedPath ) {
 
-        if(false === \Hoa\Stream\Filter::isRegistered('instrument'))
-            \Hoa\Stream\Filter::register(
+        if(false === in_array($name, stream_get_filters()))
+            stream_filter_register(
                 'instrument',
                 'Hoathis\Instrumentation\Stream\Filter'
             );
@@ -107,10 +97,10 @@ class Wrapper implements \Hoa\Stream\Wrapper\IWrapper\Stream,
         $this->_stream     = $openedPath;
         $this->_streamName = $path;
 
-        \Hoa\Stream\Filter::append(
+        stream_filter_append(
             $this->_stream,
             'instrument',
-            \Hoa\Stream\Filter::READ,
+            STREAM_FILTER_READ,
             $parameters
         );
 
@@ -255,6 +245,6 @@ class Wrapper implements \Hoa\Stream\Wrapper\IWrapper\Stream,
 
 namespace {
 
-Hoa\Stream\Wrapper::register('instrument', 'Hoathis\Instrumentation\Stream\Wrapper');
+stream_wrapper_register('instrument', 'Hoathis\Instrumentation\Stream\Wrapper');
 
 }

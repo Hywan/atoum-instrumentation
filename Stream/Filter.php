@@ -2,9 +2,6 @@
 
 namespace {
 
-from('Hoa')
--> import('Stream.Filter.LateComputed');
-
 from('Hoathis')
 -> import('Instrumentation.Sequence.Matching');
 
@@ -12,7 +9,49 @@ from('Hoathis')
 
 namespace Hoathis\Instrumentation\Stream {
 
-class Filter extends \Hoa\Stream\Filter\LateComputed {
+class Filter extends \php_user_filter {
+
+    protected $_buffer = null;
+
+    public function filter ( $in, $out, &$consumed, $closing ) {
+
+        $return = PSFS_FEED_ME;
+
+        while($iBucket = stream_bucket_make_writeable($in)) {
+
+            $this->_buffer .= $iBucket->data;
+            $consumed      += $iBucket->datalen;
+        }
+
+        if(null !== $consumed)
+            $return = PSFS_PASS_ON;
+
+        if(true === $closing) {
+
+            $this->compute();
+            $bucket = stream_bucket_new(
+                $this->getStream(),
+                $this->_buffer
+            );
+            $oBucket = stream_bucket_make_writeable($out);
+            stream_bucket_append($out, $bucket);
+
+            $return        = PSFS_PASS_ON;
+            $this->_buffer = null;
+        }
+
+        return $return;
+    }
+
+    public function onCreate ( ) {
+
+        return true;
+    }
+
+    public function onClose ( ) {
+
+        return;
+    }
 
     public function compute ( ) {
 
@@ -31,7 +70,7 @@ class Filter extends \Hoa\Stream\Filter\LateComputed {
                 $matching::SHIFT_REPLACEMENT_END
             );
 
-        if(    isset($parameters['edges'])
+        if(   isset($parameters['edges'])
            && true === $parameters['edges']) {
 
             $rules[] = array(
@@ -68,6 +107,37 @@ class Filter extends \Hoa\Stream\Filter\LateComputed {
         $this->_buffer = $buffer;
 
         return;
+    }
+
+    public function setName ( $name ) {
+
+        $old              = $this->filtername;
+        $this->filtername = $name;
+
+        return $old;
+    }
+
+    public function setParameters ( $parameters ) {
+
+        $old          = $this->params;
+        $this->params = $parameters;
+
+        return $old;
+    }
+
+    public function getName ( ) {
+
+        return $this->filtername;
+    }
+
+    public function getParameters ( ) {
+
+        return $this->params;
+    }
+
+    public function getStream ( ) {
+
+        return $this->stream;
     }
 }
 

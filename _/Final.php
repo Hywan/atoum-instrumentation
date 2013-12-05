@@ -8,6 +8,6 @@ from('Hoa')
 from('Hoathis')
 -> import('Instrumentation.Stream.Wrapper', true);
 
-$stream = new Hoa\File\Read('instrument://Test.php');
+$stream = new Hoa\File\Read('instrument://criteria=-nodes,+moles/resource=Test.php');
 
 echo $stream->readAll();

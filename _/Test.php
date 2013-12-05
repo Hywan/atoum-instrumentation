@@ -15,8 +15,10 @@ class Foobar {
 
         $this->compute($x);
 
-        if($y < 5)
+        if($y < 5) {
+
             $this->compute($y);
+        }
 
         return $x * $y;
     }
