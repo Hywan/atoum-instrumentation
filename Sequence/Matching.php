@@ -1,8 +1,10 @@
 <?php
 
-namespace Hoathis\Instrumentation\Sequence {
+namespace atoum\instrumentation\sequence;
 
-class Matching {
+const … = '__atoum_fill';
+
+class matching {
 
     const TOKEN_ALL             = -1;
     const TOKEN_ID              = 0;
@@ -217,6 +219,9 @@ class Matching {
 
         return in_array($this->getToken($index, static::TOKEN_ID), $this->_skip);
     }
-}
 
+    public static function getFillSymbol ( ) {
+
+        return …;
+    }
 }

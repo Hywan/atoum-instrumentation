@@ -1,15 +1,10 @@
 <?php
 
-namespace {
+namespace atoum\instrumentation\stream;
 
-from('Hoathis')
--> import('Instrumentation.Sequence.Matching');
+use atoum\instrumentation\sequence\matching;
 
-}
-
-namespace Hoathis\Instrumentation\Stream {
-
-class Filter extends \php_user_filter {
+class filter extends \php_user_filter {
 
     protected $_buffer = null;
 
@@ -55,17 +50,16 @@ class Filter extends \php_user_filter {
 
     public function compute ( ) {
 
-        $matching = new \Hoathis\Instrumentation\Sequence\Matching(
-            token_get_all($this->_buffer)
-        );
+        $matching = new matching(token_get_all($this->_buffer));
 
         $rules      = array();
         $parameters = $this->getParameters();
+        $…          = matching::getFillSymbol();
 
         if(   isset($parameters['nodes'])
            && true === $parameters['nodes'])
             $rules[] = array(
-                array('if', '(', …, ')'),
+                array('if', '(', $…, ')'),
                 array('if', '(', 'mark_cond(', '\3', ')', ')'),
                 $matching::SHIFT_REPLACEMENT_END
             );
@@ -74,7 +68,7 @@ class Filter extends \php_user_filter {
            && true === $parameters['edges']) {
 
             $rules[] = array(
-                array('return', …, ';'),
+                array('return', $…, ';'),
                 array('mark_line(__LINE__)', ';', 'return ', '\2', ';'),
                 $matching::SHIFT_REPLACEMENT_END
             );
@@ -88,7 +82,7 @@ class Filter extends \php_user_filter {
         if(   isset($parameters['moles'])
            && true === $parameters['moles'])
             $rules[] = array(
-                array('function', …, '(', …, '{'),
+                array('function', $…, '(', $…, '{'),
                 array('function ', '\2', ' ( ', '\4', ' {', ' if(mole_exists(__CLASS__ . \'::\2\')) return mole_call(__CLASS__ . \'::\2\');'),
                 $matching::SHIFT_REPLACEMENT_END
             );
@@ -139,6 +133,4 @@ class Filter extends \php_user_filter {
 
         return $this->stream;
     }
-}
-
 }

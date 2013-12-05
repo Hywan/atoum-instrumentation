@@ -1,13 +1,21 @@
 <?php
 
-require '/usr/local/lib/Hoa/Core/Core.php';
+spl_autoload_register(function ( $class ) {
 
-from('Hoa')
--> import('File.Read');
+    $parts = explode('\\', $class);
+    array_shift($parts);
+    array_shift($parts);
+    $path = __DIR__ . DIRECTORY_SEPARATOR . '..' . DIRECTORY_SEPARATOR .
+            implode(DIRECTORY_SEPARATOR, $parts) . '.php';
 
-from('Hoathis')
--> import('Instrumentation.Stream.Wrapper', true);
+    if(false === file_exists($path))
+        return false;
 
-$stream = new Hoa\File\Read('instrument://criteria=-nodes,+moles/resource=Test.php');
+    require_once $path;
 
-echo $stream->readAll();
+    return true;
+});
+
+atoum\instrumentation\stream\wrapper::register();
+
+echo file_get_contents('instrument://criteria=-nodes,+moles/resource=Test.php');

@@ -1,14 +1,19 @@
 <?php
 
-namespace Hoathis\Instrumentation\Stream {
+namespace atoum\instrumentation\stream;
 
-class Wrapper {
+class wrapper {
 
     private $_stream     = null;
     private $_streamName = null;
     public $context      = null;
 
 
+
+    public static function register ( ) {
+
+        return stream_wrapper_register('instrument', 'atoum\instrumentation\stream\wrapper');
+    }
 
     public function stream_cast ( $castAs ) {
 
@@ -43,10 +48,10 @@ class Wrapper {
 
     public function stream_open ( $path, $mode, $options, &$openedPath ) {
 
-        if(false === in_array($name, stream_get_filters()))
+        if(false === in_array('instrument', stream_get_filters()))
             stream_filter_register(
                 'instrument',
-                'Hoathis\Instrumentation\Stream\Filter'
+                'atoum\instrumentation\stream\filter'
             );
 
         $path = substr($path, strlen('instrument://'));
@@ -239,12 +244,4 @@ class Wrapper {
 
         return $this->_streamName;
     }
-}
-
-}
-
-namespace {
-
-stream_wrapper_register('instrument', 'Hoathis\Instrumentation\Stream\Wrapper');
-
 }
