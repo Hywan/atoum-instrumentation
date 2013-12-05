@@ -54,18 +54,21 @@ class filter extends \php_user_filter {
 
         $rules      = array();
         $parameters = $this->getParameters();
+        $enabled    = function ( $parameter ) use ( &$parameters ) {
+
+            return    isset($parameters[$parameter])
+                   && true === $parameters[$parameter];
+        };
         $…          = matching::getFillSymbol();
 
-        if(   isset($parameters['nodes'])
-           && true === $parameters['nodes'])
+        if(true === $enabled('nodes'))
             $rules[] = array(
                 array('if', '(', $…, ')'),
                 array('if', '(', 'mark_cond(', '\3', ')', ')'),
                 $matching::SHIFT_REPLACEMENT_END
             );
 
-        if(   isset($parameters['edges'])
-           && true === $parameters['edges']) {
+        if(true === $enabled('edges')) {
 
             $rules[] = array(
                 array('return', $…, ';'),
@@ -79,8 +82,7 @@ class filter extends \php_user_filter {
             );
         }
 
-        if(   isset($parameters['moles'])
-           && true === $parameters['moles'])
+        if(true === $enabled('moles'))
             $rules[] = array(
                 array('function', $…, '(', $…, '{'),
                 array('function ', '\2', ' ( ', '\4', ' {', ' if(mole_exists(__CLASS__ . \'::\2\')) return mole_call(__CLASS__ . \'::\2\');'),
