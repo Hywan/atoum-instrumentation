@@ -15,7 +15,3 @@ spl_autoload_register(function ( $class ) {
 
     return true;
 });
-
-atoum\instrumentation\stream\wrapper::register();
-
-echo file_get_contents('instrument://criteria=-nodes,+moles/resource=Test.php');
