@@ -1,17 +1,15 @@
-![Hoa](http://static.hoa-project.net/Image/Hoa_small.png)
+![atoum](http://downloads.atoum.org/images/logo.png)
 
-Hoa is a **modular**, **extensible** and **structured** set of PHP libraries.
-Moreover, Hoa aims at being a bridge between industrial and research worlds.
+atoum is a **simple**, **modern** and **intuitive** unit testing framework for
+PHP!
 
-# Hoathis\Instrumentation
+# atoum\instrumentation
 
 This library is a proof-of-concept for code instrumentation.
 
 ## Example
 
-    from('Hoathis')
-    -> import('Instrumentation.Stream.Wrapper', true); // force to load.
-
+    \atoum\instrumentation\stream\wrapper::register();
     require 'instrument://<options>/resource=<file>';
 
 And a code like:
@@ -82,13 +80,13 @@ This example can be outdated since the code is updating often but it reflects th
 
 We have two layers.
 
-The first one is `Hoathis\Instrumentation\Sequence\Matching` that takes a
-sequence as input and computes an instrumented/mutated sequence as output. This
+The first one is `atoum\instrumentation\sequence\matching` that takes a sequence
+as input and computes an instrumented/mutated sequence as output. This
 instrumentation is based on “search/replace” rules, such as:
 
     ['if', '(', …, ')'] => ['if', '(', 'mark_cond(\3), ')']
 
-The second one is `Hoathis\Instrumentation\Stream\Wrapper` that enables the
+The second one is `atoum\instrumentation\stream\wrapper` that enables the
 `instrument://` wrapper. Its role is to apply a stream filter on a certain
 resource. We can parameterize this filter through the URI, such as:
 
@@ -104,14 +102,15 @@ The `criteria=…` part is optional.
 The `resource=<file>` part can be shortened to `<file>`. It is present for
 semantics only.
 
-The stream filter `Hoathis\Instrumentation\Stream\Filter` is a
-[`Hoa\Stream\Filter\LateComputed`](https://github.com/hoaproject/Stream/blob/master/Filter/LateComputed.php)
-filter. Thus, we are able to compute the buffer when it contains all the content
+The stream filter `atoum\instrumentation\stream\filter` is a late computed
+filter (inspired from
+[`Hoa\Stream\Filter\LateComputed`](https://github.com/hoaproject/Stream/blob/master/Filter/LateComputed.php)).
+Thus, we are able to compute the buffer when it contains all the content
 of the resource. The computation made by the filter is… instrumentation.
 
 Thus, when reading a resource through the `instrument://` wrapper, the content
-is instrumented on-the-fly. No cache, no special steps, only prefix
-your resource with `instrument://`.
+is instrumented on-the-fly. No cache, no special steps, only prefix your
+resource with `instrument://`.
 
 ### How does it work at the low-level?
 
@@ -119,18 +118,13 @@ When reading or writing a resource, data are carried into buckets (whose size is
 equal to stream buffer). Buckets are exchanged from source to destination thanks
 to brigades. When a brigade gives the content of a bucket to another brigade, a
 filter can be applied on content. This filter is
-`Hoathis\Instrumentation\Stream\Filter` and is applied by
-`Hoathis\Instrumentation\Stream\Wrapper`.
+`atoum\instrumentation\stream\filter` and is applied by
+`atoum\instrumentation\stream\wrapper`.
 
-The content is lexed with the native `token_get_all` PHP function. We assume we
+The content is lexed with the native
+[`token_get_all`](http://php.net/token_get_all) PHP function. We assume we
 manipulate only PHP resources.
-
-## Documentation
-
-Different documentations can be found on the website:
-[http://hoa-project.net/](http://hoa-project.net/).
 
 ## License
 
-Hoa is under the New BSD License (BSD-3-Clause). Please, see
-[`LICENSE`](http://hoa-project.net/LICENSE).
+atoum is under the New BSD License (BSD-3-Clause).
