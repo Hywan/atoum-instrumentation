@@ -72,8 +72,12 @@
   <p>Solution: instrument <strong>on-the-fly</strong>!</p>
 </section>
 
+<section class="chapter">
+  <h1>1 <span>Instrumentation on-the-fly</span></h1>
+</section>
+
 <section>
-  <h1>Wrapper <code>instrument://</code></h1>
+  <h1><code>instrument://</code> wrapper</h1>
 
   <p>What we do to interprete a file:</p>
   <pre><code class="language-php">require 'Foo.php';</code></pre>
@@ -84,14 +88,14 @@
     <li>get the resource name to interprete (<code>Foo.php</code>),</li>
     <li>get some parameters for the instrumentation,</li>
     <li>open the resource,</li>
-    <li>apply the <code>instrument</code> <strong>filter</strong> on the
-    resource.</li>
+    <li><strong>apply the <code>instrument</code> filter on the
+    resource.</strong></li>
   </ul>
   <p>Tips: autoloaders simply prefix URI by <code>instrument://</code>!</p>
 </section>
 
 <section>
-  <h1>Filter <code>instrument</code></h1>
+  <h1><code>instrument</code> filter</h1>
 
   <div id="filter" class="schema"></div>
   <script>
@@ -111,40 +115,60 @@
   <strong>buckets</strong> of data amongst themselves.</p>
   <p>A filter is able to <strong>compute</strong> data inside buckets.</p>
   <p>A <em>late computed</em> filter computes all the data once on closing.</p>
-  <p>The <code>instrument</code> filter is a late computed filter that read PHP
-  source code!</p>
+  <p class="break">The <code>instrument</code> filter is a late computed filter
+  that read PHP source code!</p>
 </section>
 
 <section>
   <h1>Filter computation</h1>
 
+  <p>Use the <code>token_get_all</code> native PHP function to get the tokens
+  sequence of the source:</p>
   <ul>
-    <li>use the <code>token_get_all</code> native PHP function to lex the code
-    (i.e. get a sequence of tokens),</li>
-    <li>traverse this sequence and find patterns,</li>
-    <li>when a pattern matches, splice a portion of the sequence by
-    another.</li>
+    <li>traverse this sequence and find patterns…</li>
+    <li>when one matches, splice a portion of the sequence by another…</li>
   </ul>
+  <p>… until reaching the end of the sequence; then reconstitute the source and
+  let PHP do the rest!</p>
   <p>Example, search <code class="language-php">['if', '(', …, ')']</code>
   and replace by <code class="language-php">['if', '(', 'mark_cond(\3)',
-  ')']</code>:</p>
-  <pre><code class="language-php">if('bar' === $baz)</code></pre>
-  <p>becomes:</p>
-  <pre><code class="language-php">if(mark_cond('bar' === $baz))</code></pre>
+  ')']</code>. Thus: <code class="language-php">if('bar' === $baz)</code>
+  becomes: <code class="language-php">if(mark_cond('bar' === $baz))</code>.</p>
 </section>
 
 <section>
-  <h1>Awesome! Next?</h1>
+  <h1>Overview</h1>
 
-  <p>What we would like to introduce:</p>
+  <p>We are able to instrument <strong>any</strong> file <strong>before</strong>
+  it is interpreted by PHP, <strong>on-the-fly</strong>, at
+  <strong>low-cost</strong>, with <strong>pure</strong> PHP code. And only by
+  adding <code>instrument://</code> on URI.</p>
+  <p class="break">Next, what we would like to introduce:</p>
   <ul>
+    <li>parameters,</li>
     <li>moles,</li>
     <li>code coverage.</li>
   </ul>
 </section>
 
+<section class="chapter">
+  <h1>2 <span>Parameters</span></h1>
+</section>
+
 <section>
-  <h1>Moles</h1>
+  <h1>Syntax of <code>instrument://</code></h1>
+
+  <p>The full syntax of the <code>instrument://</code> URI is:</p>
+  <p class="tcenter"><code>instrument://[<em>parameters</em>/resource=]?<em>resource</em></code></p>
+  <p>where <code><em>parameters</em></code> is:</p>
+  <p class="tcenter"><code>parameters=[[+-]?<em>parameter</em>[,[+-]?<em>parameter</em>]*]?</code></p>
+  <p>and <code><em>resource</em></code> is a valid URI.</p>
+  <p>Example of disabling moles (<code>-moles</code>):</p>
+  <pre><code class="language-php">require 'instrument://parameters=-moles/resource=Foo.php';</code></pre>
+</section>
+
+<section class="chapter">
+  <h1>3 <span>Moles</span></h1>
 </section>
 
 <section>
@@ -177,17 +201,17 @@ require 'instrument://Example/C.php';
 
 $c = new Example\C();
 
-// Real Example\C::f method.
-var_dump($c->f(42)); // int(84):
+// Call the real `Example\C::f` method.
+var_dump($c->f(42)); // int(84)
 
-// Register a mole for Example\C::f.
+// Register a mole for the `Example\C::f` method.
 mole::register('Example\C::f', function ( $x ) {
 
     return $x / 2;
 });
 
-// Example\C::f uses the registed mole!
-var_dump($c->f(42)); // int(21);</code></pre>
+// The `Example\C::f` method uses the registered mole!
+var_dump($c->f(42)); // int(21)</code></pre>
 </section>
 
 
