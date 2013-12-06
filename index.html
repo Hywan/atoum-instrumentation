@@ -145,23 +145,23 @@
   adding <code>instrument://</code> on URI.</p>
   <p class="break">Next, what we would like to introduce:</p>
   <ul>
-    <li>parameters,</li>
+    <li>options,</li>
     <li>moles,</li>
     <li>code coverage.</li>
   </ul>
 </section>
 
 <section class="chapter">
-  <h1>2 <span>Parameters</span></h1>
+  <h1>2 <span>Options</span></h1>
 </section>
 
 <section>
   <h1>Syntax of <code>instrument://</code></h1>
 
   <p>The full syntax of the <code>instrument://</code> URI is:</p>
-  <p class="tcenter"><code>instrument://[<em>parameters</em>/resource=]?<em>resource</em></code></p>
-  <p>where <code><em>parameters</em></code> is:</p>
-  <p class="tcenter"><code>parameters=[[+-]?<em>parameter</em>[,[+-]?<em>parameter</em>]*]?</code></p>
+  <p class="tcenter"><code>instrument://[<em>options</em>/resource=]?<em>resource</em></code></p>
+  <p>where <code><em>options</em></code> is:</p>
+  <p class="tcenter"><code>options=[[+-]?<em>option</em>[,[+-]?<em>option</em>]*]?</code></p>
   <p>and <code><em>resource</em></code> is a valid URI.</p>
   <p>Example of disabling moles (<code>-moles</code>):</p>
   <pre><code class="language-php">require 'instrument://parameters=-moles/resource=Foo.php';</code></pre>
