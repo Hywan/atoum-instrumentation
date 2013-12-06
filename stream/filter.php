@@ -96,9 +96,9 @@ class filter extends \php_user_filter {
 
         foreach($matching->getSequence() as $token)
             if(is_array($token))
-                echo $token[$matching::TOKEN_VALUE];
+                $buffer .= $token[$matching::TOKEN_VALUE];
             else
-                echo $token;
+                $buffer .= $token;
 
         $this->_buffer = $buffer;
 
