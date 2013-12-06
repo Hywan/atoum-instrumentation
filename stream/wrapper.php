@@ -57,23 +57,23 @@ class wrapper {
         $path = substr($path, strlen('instrument://'));
 
         preg_match(
-            '#^(?:criteria=(?<criteria>[^/]*)/)?(?:resource=)?(?<resource>[^$]+)$#',
+            '#^(?:options=(?<options>[^/]*)/)?(?:resource=)?(?<resource>[^$]+)$#',
             $path,
             $matches
         );
 
-        $criteria   = $matches['criteria'];
+        $options    = $matches['options'];
         $parameters = array(
             'edges' => true,
             'nodes' => true,
             'moles' => true
         );
 
-        if(!empty($criteria)) {
+        if(!empty($options)) {
 
             preg_match_all(
                 '#(?<flag>[+\-])?(?<option>\w+)#',
-                $criteria,
+                $options,
                 $submatches,
                 PREG_SET_ORDER
             );

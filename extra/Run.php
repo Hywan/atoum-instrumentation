@@ -17,5 +17,5 @@ foreach($argv as $argument)
         $file = $argument;
 
 echo file_get_contents(
-    'instrument://criteria=' . implode(',', $options) . '/resource=' . $file
+    'instrument://options=' . implode(',', $options) . '/resource=' . $file
 );
