@@ -5,7 +5,9 @@ PHP!
 
 # atoum\instrumentation
 
-This library is a proof-of-concept for code instrumentation.
+This library is a proof-of-concept for code instrumentation. Please, see [the
+presentation](http://hywan.github.io/atoum-instrumentation) or the following
+sections.
 
 ## Example
 
@@ -127,4 +129,5 @@ manipulate only PHP resources.
 
 ## License
 
-atoum is under the New BSD License (BSD-3-Clause).
+atoum is under the New BSD License (BSD-3-Clause). Copyright Ivan Enderlin
+(Hywan).
