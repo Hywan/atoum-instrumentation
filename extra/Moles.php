@@ -7,7 +7,7 @@ use atoum\instrumentation\mole;
 
 wrapper::register();
 
-require 'instrument://criteria=-nodes,-edges/resource=Example/Moles.php';
+require 'instrument://options=-nodes,-edges/resource=Example/Moles.php';
 
 $c = new C();
 
