@@ -84,7 +84,7 @@ The first one is `atoum\instrumentation\sequence\matching` that takes a sequence
 as input and computes an instrumented/mutated sequence as output. This
 instrumentation is based on “search/replace” rules, such as:
 
-    ['if', '(', …, ')'] => ['if', '(', 'mark_cond(\3), ')']
+    ['if', '(', …, ')'] => ['if', '(', 'mark_cond(\3)', ')']
 
 The second one is `atoum\instrumentation\stream\wrapper` that enables the
 `instrument://` wrapper. Its role is to apply a stream filter on a certain
