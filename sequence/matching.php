@@ -12,10 +12,12 @@ class matching {
     const TOKEN_LINE            = 2;
     const SHIFT_REPLACEMENT_END = 0;
 
-    protected $_sequence = null;
-    protected $_index    = 0;
-    protected $_max      = 0;
-    protected $_skip     = array();
+    protected $_sequence  = null;
+    protected $_index     = 0;
+    protected $_max       = 0;
+    protected $_skip      = array();
+    protected $_rules     = array();
+    protected $_variables = array();
 
 
 
@@ -63,141 +65,283 @@ class matching {
 
     public function match ( Array $rules ) {
 
-        // a rule cannot start by “…”.
-        // “…” suivit de “…” est interdit (ou supprimé en un seul “…”).
+        // TODO:
+        //   • a rule cannot start by “…”.
+        //   • “…” followed by “…” is not allow.
 
-        for(; $this->_index <= $this->_max; ++$this->_index) {
+        $state = 0;
+        // 0  done
+        // 1  ongoing
+        // 2  class, trait
+        // 4  method
+        // 8  rest…
+        $this->_variables = array(
+            'class' => array(
+                // 'abstract' => false,
+                'name' => null,
+            ),
+            'method' => array(
+                //'abstract'   => false,
+                //'visibility' => 'public',
+                //'static'     => false,
+                'name' => null
+            )
+        );
 
-            $i       = $this->_index;
-            $set     = null;
+        for(; $this->_index < $this->_max; ++$this->_index) {
+
+            $token = &$this->_sequence[$this->_index];
+
+            if(T_CLASS === $token[0]) {
+
+                $state = 3;
+
+                ++$this->_index;
+                while(T_STRING !== $this->_sequence[$this->_index++][0]);
+                --$this->_index;
+
+                $nextToken = &$this->_sequence[$this->_index];
+                $this->_variables['class']['name'] = $nextToken[1];
+
+                continue;
+            }
+
+            if('{' === $token[1]) {
+
+                if(3 === $state) {
+
+                    $state = 2;
+                    $this->_match();
+
+                    continue;
+                }
+                elseif(5 === $state) {
+
+                    $state = 4;
+
+                    if(isset($rules['method::start'])) {
+
+                        $old      = $this->_rules;
+                        $this->_rules = $rules['method::start'];
+                        $this->_match();
+                        $this->_rules = $old;
+                    }
+
+                    continue;
+                }
+                else {
+
+                    $state = 8;
+                    $this->_match();
+
+                    continue;
+                }
+
+                continue;
+            }
+            elseif('}' === $token[1]) {
+
+                if(2 === $state) {
+
+                    $state = 0;
+                    $this->_variables['class']['name'] = null;
+                }
+                elseif(4 === $state) {
+
+                    $state = 2;
+                    $this->_variables['method']['name'] = null;
+                }
+                else {
+
+                    $state = 4;
+                }
+
+                continue;
+            }
+
+            if(2 === $state) {
+
+                if(T_FUNCTION === $token[0]) {
+
+                    $state = 5;
+
+                    ++$this->_index;
+                    while(T_STRING !== $this->_sequence[$this->_index++][0]);
+                    --$this->_index;
+
+                    $nextToken = &$this->_sequence[$this->_index];
+                    $this->_variables['method']['name'] = $nextToken[1];
+
+                    continue;
+                }
+            }
+            elseif(4 === $state) {
+
+                if(isset($rules['method::body'])) {
+
+                    $old          = $this->_rules;
+                    $this->_rules = $rules['method::body'];
+                    $this->_match();
+                    $this->_rules = $old;
+                }
+            }
+        }
+
+        return;
+    }
+
+    protected function _match ( ) {
+
+        $i       = $this->_index;
+        $set     = null;
+        $length  = 0;
+        $matches = array();
+
+        if(true === $this->skipable($i))
+            return;
+
+        foreach($this->_rules as $rule) {
+
+            list($pattern, $replace) = $rule;
+
+            $gotcha  = false;
             $length  = 0;
             $matches = array();
 
-            if(true === $this->skipable($i))
-                continue;
+            for($j = 0, $max = count($pattern) - 1;
+                $j <= $max && $i + $j < $this->_max;
+                ++$j) {
 
-            foreach($rules as $rule) {
+                if(true === $this->skipable($i + $j)) {
 
-                list($pattern, $replace) = $rule;
+                    ++$i;
+                    --$j;
+                    ++$length;
 
-                $gotcha  = false;
-                $length  = 0;
-                $matches = array();
+                    continue;
+                }
 
-                for($j = 0, $max = count($pattern) - 1;
-                    $j <= $max && $i + $j < $this->_max;
-                    ++$j) {
+                $token    = &$this->getToken($i + $j);
+                $pToken   = $pattern[$j];
+                $_matches = null;
 
-                    if(true === $this->skipable($i + $j)) {
+                if(… === $pToken) {
 
-                        ++$i;
-                        --$j;
-                        ++$length;
+                    $pNextToken = $pattern[$j + 1];
+                    $_length    = 0;
+                    $_skipped   = null;
 
-                        continue;
-                    }
+                    for($_i = $i + $j, $_max = $this->_max - 1;
+                        $_i <= $_max && ++$_length;
+                        ++$_i) {
 
-                    $token    = &$this->getToken($i + $j);
-                    $pToken   = $pattern[$j];
-                    $_matches = null;
+                        if(true === $this->skipable($_i)) {
 
-                    if(… === $pToken) {
+                            $_skipped .= $this->getToken($_i);
 
-                        $pNextToken = $pattern[$j + 1];
-                        $_length    = 0;
-                        $_skipped   = null;
-
-                        for($_i = $i + $j, $_max = $this->_max - 1;
-                            $_i <= $_max && ++$_length;
-                            ++$_i) {
-
-                            if(true === $this->skipable($_i)) {
-
-                                $_skipped .= $this->getToken($_i);
-
-                                continue;
-                            }
-
-                            $nextToken = &$this->getToken($_i);
-                            $gotcha    = $pNextToken === $nextToken;
-
-                            if(true === $gotcha) {
-
-                                $length += $_length;
-                                ++$j;
-
-                                if(   isset($pattern[$j + 1])
-                                   && … === $pattern[$j + 1])
-                                    $i++;
-
-                                $matches[] = $_matches;
-                                $_matches  = $_skipped . $nextToken;
-                                $_skipped  = null;
-
-                                break;
-                            }
-                            else {
-
-                                $_matches .= $_skipped . $nextToken;
-                                $_skipped  = null;
-                            }
+                            continue;
                         }
-                    }
-                    else {
 
-                        $gotcha = $pToken === $token;
+                        $nextToken = &$this->getToken($_i);
+                        $gotcha    = $pNextToken === $nextToken;
 
                         if(true === $gotcha) {
 
-                            ++$length;
-                            $_matches = $token;
+                            $length += $_length;
+                            ++$j;
+
+                            if(   isset($pattern[$j + 1])
+                               && … === $pattern[$j + 1])
+                                $i++;
+
+                            $matches[] = $_matches;
+                            $_matches  = $_skipped . $nextToken;
+                            $_skipped  = null;
+
+                            break;
+                        }
+                        else {
+
+                            $_matches .= $_skipped . $nextToken;
+                            $_skipped  = null;
                         }
                     }
+                }
+                else {
 
-                    if(false === $gotcha)
-                        break;
-                    elseif(null !== $_matches)
-                        $matches[] = $_matches;
+                    $gotcha = $pToken === $token;
+
+                    if(true === $gotcha) {
+
+                        ++$length;
+                        $_matches = $token;
+                    }
                 }
 
-                if(true === $gotcha) {
-
-                    $set = $rule;
+                if(false === $gotcha)
                     break;
-                }
+                elseif(null !== $_matches)
+                    $matches[] = $_matches;
             }
 
-            if(null === $set)
+            if(true === $gotcha) {
+
+                $set = $rule;
+                break;
+            }
+        }
+
+        if(null === $set)
+            return;
+
+        foreach($set[1] as &$_tokens) {
+
+            if(false === strpos($_tokens, '\\'))
                 continue;
 
-            foreach($set[1] as &$_tokens)
-                $_tokens = preg_replace_callback(
-                    '#\\\(\d+)#',
-                    function ( Array $m ) use ( $matches ) {
+            $_tokens = preg_replace_callback(
+                '#\\\(\w+)\.(\w+)#',
+                function ( Array $m ) {
 
-                        $x = $m[1] - 1;
+                    if(!isset($this->_variables[$m[1]]))
+                        return '';
 
-                        if(!isset($matches[$x]))
-                            return null;
+                    if(!isset($this->_variables[$m[1]][$m[2]]))
+                        return '';
 
-                        return $matches[$x];
-                    },
-                    $_tokens
-                );
-
-            array_splice(
-                $this->_sequence,
-                $this->_index,
-                $length,
-                $set[1]
+                    return $this->_variables[$m[1]][$m[2]];
+                },
+                $_tokens
             );
+            $_tokens = preg_replace_callback(
+                '#\\\(\d+)#',
+                function ( Array $m ) use ( $matches ) {
 
-            if(   isset($set[2])
-               && static::SHIFT_REPLACEMENT_END === $set[2])
-                $this->_index += count($set[1]) - 1;
+                    $x = $m[1] - 1;
 
-            $this->_max = count($this->_sequence);
+                    if(!isset($matches[$x]))
+                        return null;
+
+                    return $matches[$x];
+                },
+                $_tokens
+            );
         }
+
+        array_splice(
+            $this->_sequence,
+            $this->_index,
+            $length,
+            $set[1]
+        );
+
+        if(   isset($set[2])
+           && static::SHIFT_REPLACEMENT_END === $set[2])
+            $this->_index += count($set[1]) - 1;
+
+        $this->_max = count($this->_sequence);
+
+        return;
     }
 
     protected function &getToken ( $i, $index = self::TOKEN_VALUE ) {

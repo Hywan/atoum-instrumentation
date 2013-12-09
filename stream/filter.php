@@ -62,7 +62,7 @@ class filter extends \php_user_filter {
         $…          = matching::getFillSymbol();
 
         if(true === $enabled('nodes'))
-            $rules[] = array(
+            $rules['method::body'][] = array(
                 array('if', '(', $…, ')'),
                 array('if', '(', 'mark_cond(', '\3', ')', ')'),
                 $matching::SHIFT_REPLACEMENT_END
@@ -70,12 +70,12 @@ class filter extends \php_user_filter {
 
         if(true === $enabled('edges')) {
 
-            $rules[] = array(
+            $rules['method::body'][] = array(
                 array('return', $…, ';'),
                 array('mark_line(__LINE__)', ';', 'return ', '\2', ';'),
                 $matching::SHIFT_REPLACEMENT_END
             );
-            $rules[] = array(
+            $rules['method::body'][] = array(
                 array(';'),
                 array(';', 'mark_line(__LINE__)', ';'),
                 $matching::SHIFT_REPLACEMENT_END
@@ -83,9 +83,9 @@ class filter extends \php_user_filter {
         }
 
         if(true === $enabled('moles'))
-            $rules[] = array(
-                array('function', $…, '(', $…, '{'),
-                array('function ', '\2', ' ( ', '\4', ' {', ' if(\atoum\instrumentation\mole::exists(__CLASS__ . \'::\2\')) return \atoum\instrumentation\mole::call(__CLASS__ . \'::\2\', func_get_args());'),
+            $rules['method::start'][] = array(
+                array('{'),
+                array('{', ' if(\atoum\instrumentation\mole::exists(\'\class.name::\method.name\')) return \atoum\instrumentation\mole::call(\'\class.name::\method.name\', func_get_args());'),
                 $matching::SHIFT_REPLACEMENT_END
             );
 
