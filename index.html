@@ -17,6 +17,51 @@
         background: url("http://downloads.atoum.org/images/logo.png") 98% 1em / 80px no-repeat,
                     #fff url("http://static.hoa-project.net/Image/Background_paper.png");
     }
+
+    table {
+        text-align: center;
+        margin: 0 auto;
+        border-collapse: collapse;
+    }
+
+    table > thead {
+        border: 1px #000 solid;
+        border-width: 2px 0;
+    }
+
+    table th {
+        padding: 0 1em;
+        border-bottom: 1px #000 solid;
+    }
+
+    table td {
+        padding: 0 1em;
+        border-top: 1px #000 solid;
+    }
+
+    table > tbody > tr {
+        border: 1px #000 solid;
+        border-width: 1px 0;
+    }
+
+    table > tbody::before {
+        line-height: 1px;
+        content: " ";
+        visibility: hidden;
+        display: block;
+    }
+
+    table > tbody.first-column-align-start > tr > td:first-child {
+        text-align: left;
+    }
+
+    .👍 {
+        color: green;
+    }
+
+    .👎 {
+        color: red;
+    }
   </style>
 </head>
 <body>
@@ -86,10 +131,10 @@
   <p><code>instrument://</code> is a user-defined stream wrapper:</p>
   <ul>
     <li>get the resource name to interprete (<code>Foo.php</code>),</li>
-    <li>get some parameters for the instrumentation,</li>
+    <li>get some options for the instrumentation,</li>
     <li>open the resource,</li>
     <li><strong>apply the <code>instrument</code> filter on the
-    resource.</strong></li>
+    resource</strong>.</li>
   </ul>
   <p>Tips: autoloaders simply prefix URI by <code>instrument://</code>!</p>
 </section>
@@ -143,7 +188,7 @@
   it is interpreted by PHP, <strong>on-the-fly</strong>, at
   <strong>low-cost</strong>, with <strong>pure</strong> PHP code. And only by
   adding <code>instrument://</code> on URI.</p>
-  <p class="break">Next, what we would like to introduce:</p>
+  <p class="break">Next, what we make with the instrumentation is:</p>
   <ul>
     <li>options,</li>
     <li>moles,</li>
@@ -172,12 +217,47 @@
 </section>
 
 <section>
+  <h1>Limitations of mock</h1>
+
+  <p>A mock is a class <code>MC</code> that <strong>extends</strong> an existing
+  one <code>C</code>.</p>
+  <p>Each method can be redefined/re-implemented.</p>
+  <p>Current issues:</p>
+  <ul>
+    <li>redefining private methods is not possible,</li>
+    <li>redefining final methods is not possible,</li>
+    <li>redefining static methods called with <code>self</code> is not
+    possible,</li>
+    <li>cannot access to private attributes,</li>
+    <li>no dynamic definitions, one mock per expected behavior.</li>
+  </ul>
+</section>
+
+<section>
+  <h1>Moles in a nutshell</h1>
+
+  <p>Original code:</p>
+  <pre><code class="language-php">    public function f ( $x, $y ) {
+
+        // …
+    }</code></pre>
+  <p>“Moled” code:</p>
+  <pre><code class="language-php">    public function f ( $x, $y ) {
+
+        if(true === mole_exists('C::f'))
+            return mole_call('C::f', $this, func_get_args());
+
+        // …
+    }</code></pre>
+  <p>Mocks are <strong>external</strong> to the original code.</p>
+  <p>Moles are <strong>inside</strong> the original code.</p>
+</section>
+
+<section>
   <h1>Moles in action <small>(1/2)</small></h1>
 
   <p>Original code <code>Example/C.php</code>:</p>
-  <pre><code class="language-php">&lt;?php
-
-namespace Example;
+  <pre><code class="language-php">namespace Example;
 
 class C {
 
@@ -186,17 +266,15 @@ class C {
         return $x * 2;
     }
 }</code></pre>
-  <p>Goal: modify the behavior of <code>Example\C::f</code>.</p>
+  <p>Goal: modify the behavior of <code>Example\C::f</code> (thanks to the
+  instrumentation!).</p>
 </section>
 
 <section>
   <h1>Moles in action <small>(2/2)</small></h1>
 
   <p>Use <code>instrument://</code> and <code>mole::register</code>:</p>
-  <pre><code class="language-php">use atoum\instrumentation\stream\wrapper;
-use atoum\instrumentation\mole;
-
-wrapper::register();
+  <pre><code class="language-php">use atoum\instrumentation\mole;
 require 'instrument://Example/C.php';
 
 $c = new Example\C();
@@ -212,6 +290,48 @@ mole::register('Example\C::f', function ( $x ) {
 
 // The `Example\C::f` method uses the registered mole!
 var_dump($c->f(42)); // int(21)</code></pre>
+  <p><code>Example\C::f</code> has been redefined dynamically!</p>
+</section>
+
+<section>
+  <h1>Mock vs. mole</h1>
+
+  <table>
+    <thead>
+      <tr>
+        <th></th>
+        <th>mock</th>
+        <th>mole</th>
+      </tr>
+    </thead>
+    <tbody class="first-column-align-start">
+      <tr>
+        <td>private methods</td>
+        <td class="👎">✖︎</td>
+        <td class="👍">✔︎</td>
+      </tr>
+      <tr>
+        <td>final methods</td>
+        <td class="👎">✖︎</td>
+        <td class="👍">✔︎</td>
+      </tr>
+      <tr>
+        <td>static methods <small>(called with <code>self</code>)</small></td>
+        <td class="👎">✖︎</td>
+        <td class="👍">✔︎</td>
+      </tr>
+      <tr>
+        <td>private attributes</td>
+        <td class="👎">✖︎</td>
+        <td class="👍">✔︎</td>
+      </tr>
+      <tr>
+        <td>dynamic definitions</td>
+        <td class="👎">✖︎</td>
+        <td class="👍">✔︎</td>
+      </tr>
+    </tbody>
+  </table>
 </section>
 
 
