@@ -7,10 +7,7 @@ class C {
         return $x * 2;
     }
 
-    protected function g ( Array $a, $x, $y ) {
-
-        if(empty($a))
-            return 'foo';
+    protected function g ( $x, $y ) {
 
         return $this->f($x + $y);
     }
@@ -20,8 +17,13 @@ class C {
         return 'bar';
     }
 
-    public static function i ( ) {
+    public static function i ( $x, $y ) {
 
         return 'baz';
+    }
+
+    public function x ( $x, $y ) {
+
+        return $this->g($x, $y);
     }
 }
