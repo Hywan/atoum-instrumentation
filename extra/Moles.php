@@ -8,7 +8,7 @@ use atoum\instrumentation\mole;
 wrapper::register();
 require 'instrument://options=-nodes,-edges/resource=Example/Moles.php';
 
-$c = new C();
+$c = new Example\C();
 
 var_dump($c->f(42)); // int(84)
 var_dump($c->x(10, 5)); // int(30)

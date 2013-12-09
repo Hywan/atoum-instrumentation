@@ -1,5 +1,7 @@
 <?php
 
+namespace Example;
+
 class C {
 
     public function f ( $x ) {
