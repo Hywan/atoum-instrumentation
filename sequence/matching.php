@@ -84,7 +84,7 @@ class matching {
                 //'abstract'   => false,
                 'visibility' => 'public',
                 'static'     => false,
-                'name' => null
+                'name'       => null
             )
         );
 
