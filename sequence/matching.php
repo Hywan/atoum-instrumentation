@@ -82,8 +82,8 @@ class matching {
             ),
             'method' => array(
                 //'abstract'   => false,
-                //'visibility' => 'public',
-                //'static'     => false,
+                'visibility' => 'public',
+                'static'     => false,
                 'name' => null
             )
         );
@@ -178,6 +178,38 @@ class matching {
                 if(T_FUNCTION === $token[0]) {
 
                     $state = 5;
+
+                    $oldIndex = $this->_index;
+
+                    for($i = 0; $i <= 1; ++$i) {
+
+                        do {
+
+                            $previousToken = $this->_sequence[--$this->_index][0];
+
+                        } while(   T_WHITESPACE  === $previousToken
+                                || T_COMMENT     === $previousToken
+                                || T_DOC_COMMENT === $previousToken);
+
+                        $previousToken = $this->_sequence[$this->_index][0];
+
+                        if(   T_STATIC    !== $previousToken
+                           && T_PUBLIC    !== $previousToken
+                           && T_PROTECTED !== $previousToken
+                           && T_PRIVATE   !== $previousToken)
+                            continue;
+
+                        if(T_STATIC === $previousToken)
+                            $this->_variables['method']['static'] = true;
+                        elseif(T_PUBLIC === $previousToken)
+                            $this->_variables['method']['visibility'] = 'public';
+                        elseif(T_PROTECTED === $previousToken)
+                            $this->_variables['method']['visibility'] = 'protected';
+                        elseif(T_PRIVATE === $previousToken)
+                            $this->_variables['method']['visibility'] = 'private';
+                    }
+
+                    $this->_index = $oldIndex;
 
                     ++$this->_index;
                     while(T_STRING !== $this->_sequence[$this->_index++][0]);
