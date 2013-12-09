@@ -86,7 +86,23 @@ class filter extends \php_user_filter {
         if(true === $enabled('moles'))
             $rules['method::start'][] = array(
                 array('{'),
-                array('{', ' if(\atoum\instrumentation\mole::exists(\'\class.name::\method.name\')) return \atoum\instrumentation\mole::call(\'\class.name::\method.name\', func_get_args());'),
+                function ( Array $variables ) {
+
+                    $callable = $variables['class']['name'] . '::' .
+                                $variables['method']['name'];
+                    $class    = '\atoum\instrumentation\mole';
+
+                    $code = ' if(' . $class . '::exists(\'' . $callable . '\')) ' .
+                            'return ' . $class . '::call(' .
+                                '\'' . $callable . '\', ' .
+                                (true === $variables['method']['static']
+                                    ? '\'' . $variables['class']['name'] . '\', '
+                                    : '$this, ') .
+                                'func_get_args()' .
+                            ');';
+
+                    return array('{', $code);
+                },
                 $matching::SHIFT_REPLACEMENT_END,
                 function ( Array $variables ) use ( &$export ) {
 
@@ -119,8 +135,6 @@ class filter extends \php_user_filter {
                 $buffer .= $token[$matching::TOKEN_VALUE];
             else
                 $buffer .= $token;
-
-        print_r($export);
 
         $this->_buffer = $buffer;
 
