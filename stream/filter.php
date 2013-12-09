@@ -59,7 +59,8 @@ class filter extends \php_user_filter {
             return    isset($parameters[$parameter])
                    && true === $parameters[$parameter];
         };
-        $…          = matching::getFillSymbol();
+        $…          = \atoum\instrumentation\sequence\…;
+        $export     = array();
 
         if(true === $enabled('nodes'))
             $rules['method::body'][] = array(
@@ -86,8 +87,27 @@ class filter extends \php_user_filter {
             $rules['method::start'][] = array(
                 array('{'),
                 array('{', ' if(\atoum\instrumentation\mole::exists(\'\class.name::\method.name\')) return \atoum\instrumentation\mole::call(\'\class.name::\method.name\', func_get_args());'),
-                $matching::SHIFT_REPLACEMENT_END
+                $matching::SHIFT_REPLACEMENT_END,
+                function ( Array $variables ) use ( &$export ) {
+
+                    $export[] = $variables['class']['name'] . '::' .
+                                $variables['method']['name'];
+
+                    return;
+                }
             );
+
+        /*
+        $rules['file::end'][] = array(
+            array(),
+            function ( ) use ( &$export ) {
+
+                return array(
+                    var_export($export, true) . ';'
+                );
+            }
+        );
+        */
 
         $matching->skip(array(T_WHITESPACE));
         $matching->match($rules);
@@ -99,6 +119,8 @@ class filter extends \php_user_filter {
                 $buffer .= $token[$matching::TOKEN_VALUE];
             else
                 $buffer .= $token;
+
+        print_r($export);
 
         $this->_buffer = $buffer;
 

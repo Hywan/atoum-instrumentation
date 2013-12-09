@@ -111,9 +111,14 @@ class matching {
                 if(3 === $state) {
 
                     $state = 2;
-                    $this->_match();
 
-                    continue;
+                    if(isset($rules['class::start'])) {
+
+                        $old          = $this->_rules;
+                        $this->_rules = $rules['class::start'];
+                        $this->_match();
+                        $this->_rules = $old;
+                    }
                 }
                 elseif(5 === $state) {
 
@@ -121,21 +126,14 @@ class matching {
 
                     if(isset($rules['method::start'])) {
 
-                        $old      = $this->_rules;
+                        $old          = $this->_rules;
                         $this->_rules = $rules['method::start'];
                         $this->_match();
                         $this->_rules = $old;
                     }
-
-                    continue;
                 }
-                else {
-
+                else
                     $state = 8;
-                    $this->_match();
-
-                    continue;
-                }
 
                 continue;
             }
@@ -144,17 +142,33 @@ class matching {
                 if(2 === $state) {
 
                     $state = 0;
+
+                    if(isset($rules['class:end'])) {
+
+                        $old          = $this->_rules;
+                        $this->_rules = $rules['class::end'];
+                        $this->_match();
+                        $this->_rules = $old;
+                    }
+
                     $this->_variables['class']['name'] = null;
                 }
                 elseif(4 === $state) {
 
                     $state = 2;
+
+                    if(isset($rules['method:end'])) {
+
+                        $old          = $this->_rules;
+                        $this->_rules = $rules['method::end'];
+                        $this->_match();
+                        $this->_rules = $old;
+                    }
+
                     $this->_variables['method']['name'] = null;
                 }
-                else {
-
+                else
                     $state = 4;
-                }
 
                 continue;
             }
@@ -187,6 +201,14 @@ class matching {
             }
         }
 
+        if(isset($rules['file::end'])) {
+
+            $old          = $this->_rules;
+            $this->_rules = $rules['file::end'];
+            $this->_match();
+            $this->_rules = $old;
+        }
+
         return;
     }
 
@@ -203,6 +225,12 @@ class matching {
         foreach($this->_rules as $rule) {
 
             list($pattern, $replace) = $rule;
+
+            if(empty($pattern)) {
+
+                $set = $rule;
+                break;
+            }
 
             $gotcha  = false;
             $length  = 0;
@@ -294,38 +322,44 @@ class matching {
         if(null === $set)
             return;
 
-        foreach($set[1] as &$_tokens) {
+        if(is_array($set[1]))
+            foreach($set[1] as &$_tokens) {
 
-            if(false === strpos($_tokens, '\\'))
-                continue;
+                if(false === strpos($_tokens, '\\'))
+                    continue;
 
-            $_tokens = preg_replace_callback(
-                '#\\\(\w+)\.(\w+)#',
-                function ( Array $m ) {
+                $_tokens = preg_replace_callback(
+                    '#\\\(\w+)\.(\w+)#',
+                    function ( Array $m ) {
 
-                    if(!isset($this->_variables[$m[1]]))
-                        return '';
+                        if(!isset($this->_variables[$m[1]]))
+                            return '';
 
-                    if(!isset($this->_variables[$m[1]][$m[2]]))
-                        return '';
+                        if(!isset($this->_variables[$m[1]][$m[2]]))
+                            return '';
 
-                    return $this->_variables[$m[1]][$m[2]];
-                },
-                $_tokens
-            );
-            $_tokens = preg_replace_callback(
-                '#\\\(\d+)#',
-                function ( Array $m ) use ( $matches ) {
+                        return $this->_variables[$m[1]][$m[2]];
+                    },
+                    $_tokens
+                );
+                $_tokens = preg_replace_callback(
+                    '#\\\(\d+)#',
+                    function ( Array $m ) use ( $matches ) {
 
-                    $x = $m[1] - 1;
+                        $x = $m[1] - 1;
 
-                    if(!isset($matches[$x]))
-                        return null;
+                        if(!isset($matches[$x]))
+                            return null;
 
-                    return $matches[$x];
-                },
-                $_tokens
-            );
+                        return $matches[$x];
+                    },
+                    $_tokens
+                );
+            }
+        elseif(is_callable($set[1])) {
+
+            $callable = $set[1];
+            $set[1]   = $callable($this->_variables);
         }
 
         array_splice(
@@ -338,6 +372,13 @@ class matching {
         if(   isset($set[2])
            && static::SHIFT_REPLACEMENT_END === $set[2])
             $this->_index += count($set[1]) - 1;
+
+        if(   isset($set[3])
+           && is_callable($set[3])) {
+
+            $callable = $set[3];
+            $callable($this->_variables);
+        }
 
         $this->_max = count($this->_sequence);
 
@@ -362,10 +403,5 @@ class matching {
     protected function skipable ( $index ) {
 
         return in_array($this->getToken($index, static::TOKEN_ID), $this->_skip);
-    }
-
-    public static function getFillSymbol ( ) {
-
-        return …;
     }
 }
