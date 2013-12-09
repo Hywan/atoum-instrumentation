@@ -25,13 +25,22 @@ class mole {
         return;
     }
 
-    public static function call ( $id, Array $arguments ) {
+    public static function call ( $id, $self, Array $arguments ) {
 
         $id = ltrim($id, '\\');
 
         if(false === static::exists($id))
             throw new exception(vprintf('Call the unregistered mole %s.', $id), 0);
 
-        return call_user_func_array(static::$_moles[$id], $arguments);
+        $mole = static::$_moles[$id];
+
+        if(   $mole instanceof \Closure
+           && true === is_object($self)
+           && true === method_exists($mole, 'bindTo'))
+            $mole = $mole->bindTo($self);
+        else
+            $arguments = array_merge(array($self), $arguments);
+
+        return call_user_func_array($mole, $arguments);
     }
 }
