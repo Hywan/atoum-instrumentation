@@ -37,7 +37,7 @@ class mole {
         if(   $mole instanceof \Closure
            && true === is_object($self)
            && true === method_exists($mole, 'bindTo'))
-            $mole = $mole->bindTo($self);
+            $mole = $mole->bindTo($self, get_class($self));
         else
             $arguments = array_merge(array($self), $arguments);
 
