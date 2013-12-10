@@ -76,10 +76,13 @@ class matching {
         // 4  method
         // 8  rest…
         $this->_variables = array(
+            'namespace' => null,
+
             'class' => array(
                 // 'abstract' => false,
                 'name' => null,
             ),
+
             'method' => array(
                 //'abstract'   => false,
                 'visibility' => 'public',
@@ -92,6 +95,18 @@ class matching {
 
             $token = &$this->_sequence[$this->_index];
 
+            if(T_NAMESPACE === $token[0]) {
+
+                ++$this->_index;
+                while(T_STRING !== $this->_sequence[$this->_index++][0]);
+                --$this->_index;
+
+                $nextToken = &$this->_sequence[$this->_index];
+                $this->_variables['namespace'] = $nextToken[1];
+
+                continue;
+            }
+
             if(T_CLASS === $token[0]) {
 
                 $state = 3;
@@ -101,7 +116,9 @@ class matching {
                 --$this->_index;
 
                 $nextToken = &$this->_sequence[$this->_index];
-                $this->_variables['class']['name'] = $nextToken[1];
+                $this->_variables['class']['name'] =
+                    $this->_variables['namespace'] . '\\' .
+                    $nextToken[1];
 
                 continue;
             }
