@@ -88,22 +88,23 @@ class filter extends \php_user_filter {
                 array('{'),
                 function ( Array $variables ) {
 
-                    $callable = $variables['class']['name'] . '::' .
-                                $variables['method']['name'];
-                    $class    = '\atoum\instrumentation\mole';
+                    $class = '\atoum\instrumentation\mole';
 
-                    $code = ' if(' . $class . '::exists(\'' . $callable . '\')) ' .
+                    if(true === $variables['method']['static'])
+                        $callable = '\'' . $variables['class']['name'] . '\', ' .
+                                    '\'' . $variables['method']['name'] . '\'';
+                    else
+                        $callable = '$this, ' .
+                                    '\'' . $variables['method']['name'] . '\'';
+
+                    $code = ' if(' . $class . '::exists(array(' . $callable . '))) ' .
                             'return ' . $class . '::call(' .
-                                '\'' . $callable . '\', ' .
-                                (true === $variables['method']['static']
-                                    ? '\'' . $variables['class']['name'] . '\', '
-                                    : '$this, ') .
-                                'func_get_args()' .
+                                'array(' . $callable . '), func_get_args()' .
                             ');';
 
                     return array('{', $code);
                 },
-                $matching::SHIFT_REPLACEMENT_END,
+                $matching::SHIFT_REPLACEMENT_END/*,
                 function ( Array $variables ) use ( &$export ) {
 
                     $export[] = $variables['class']['name'] . '::' .
@@ -111,6 +112,7 @@ class filter extends \php_user_filter {
 
                     return;
                 }
+                */
             );
 
         /*
