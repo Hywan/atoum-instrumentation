@@ -21,7 +21,7 @@
     table {
         text-align: center;
         margin: 0 auto;
-        max-width: 80%;
+        max-width: 90%;
         border-collapse: collapse;
     }
 
@@ -227,8 +227,9 @@
   <ul>
     <li>redefining private methods is not possible,</li>
     <li>redefining final methods is not possible,</li>
-    <li>redefining static methods called with <code>self</code> or
-    <code>parent</code> is not possible,</li>
+    <li>redefining parent methods of a child class is not possible,</li>
+    <li>redefining static methods called with <code>self</code> is not
+    possible,</li>
     <li>cannot access to private attributes,</li>
     <li>no dynamic definitions, one mock per expected behavior.</li>
   </ul>
@@ -317,8 +318,12 @@ var_dump($c->f(42)); // int(21)</code></pre>
         <td class="👍">✔︎</td>
       </tr>
       <tr>
-        <td>static methods <small>(called with <code>self</code> or
-        <code>parent</code>)</small></td>
+        <td>parent methods</td>
+        <td class="👎">✖︎</td>
+        <td class="👍">✔︎</td>
+      </tr>
+      <tr>
+        <td>static methods <small>(called with <code>self</code>)</small></td>
         <td class="👎">✖︎</td>
         <td class="👍">✔︎</td>
       </tr>
