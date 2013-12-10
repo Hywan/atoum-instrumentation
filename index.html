@@ -230,8 +230,7 @@
     <li>redefining parent methods of a child class is not possible,</li>
     <li>redefining static methods called with <code>self</code> is not
     possible,</li>
-    <li>cannot access to private attributes,</li>
-    <li>no dynamic definitions, one mock per expected behavior.</li>
+    <li>cannot access to private attributes.</li>
   </ul>
 </section>
 
@@ -329,11 +328,6 @@ var_dump($c->f(42)); // int(21)</code></pre>
       </tr>
       <tr>
         <td>private attributes</td>
-        <td class="👎">✖︎</td>
-        <td class="👍">✔︎</td>
-      </tr>
-      <tr>
-        <td>dynamic definitions</td>
         <td class="👎">✖︎</td>
         <td class="👍">✔︎</td>
       </tr>
