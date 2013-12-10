@@ -13,7 +13,7 @@ $c = new Example\C();
 var_dump($c->f(42)); // int(84)
 var_dump($c->x(10, 5)); // int(30)
 
-mole::register('C::f', function ( $x ) {
+mole::register('Example\C::f', function ( $x ) {
 
     return $x / 2;
 });
@@ -21,7 +21,7 @@ mole::register('C::f', function ( $x ) {
 var_dump($c->f(42)); // int(21)
 var_dump($c->x(10, 5)); // float(7.5)
 
-mole::register('C::g', function ( $x, $y ) {
+mole::register('Example\C::g', function ( $x, $y ) {
 
     return $this->f($x - $y);
 });
