@@ -60,28 +60,6 @@ class filter extends \php_user_filter {
                    && true === $parameters[$parameter];
         };
         $…          = \atoum\instrumentation\sequence\…;
-        $export     = array();
-
-        if(true === $enabled('nodes'))
-            $rules['method::body'][] = array(
-                array('if', '(', $…, ')'),
-                array('if', '(', 'mark_cond(', '\3', ')', ')'),
-                $matching::SHIFT_REPLACEMENT_END
-            );
-
-        if(true === $enabled('edges')) {
-
-            $rules['method::body'][] = array(
-                array('return', $…, ';'),
-                array('mark_line(__LINE__)', ';', 'return ', '\2', ';'),
-                $matching::SHIFT_REPLACEMENT_END
-            );
-            $rules['method::body'][] = array(
-                array(';'),
-                array(';', 'mark_line(__LINE__)', ';'),
-                $matching::SHIFT_REPLACEMENT_END
-            );
-        }
 
         if(true === $enabled('moles'))
             $rules['method::start'][] = array(
@@ -104,30 +82,136 @@ class filter extends \php_user_filter {
 
                     return array('{', $code);
                 },
-                $matching::SHIFT_REPLACEMENT_END/*,
-                function ( Array $variables ) use ( &$export ) {
-
-                    $export[] = $variables['class']['name'] . '::' .
-                                $variables['method']['name'];
-
-                    return;
-                }
-                */
+                $matching::SHIFT_REPLACEMENT_END
             );
 
-        /*
-        $rules['file::end'][] = array(
-            array(),
-            function ( ) use ( &$export ) {
+        if(true === $enabled('coverage-transition')) {
 
-                return array(
-                    var_export($export, true) . ';'
-                );
-            }
-        );
-        */
+            $_coverageExport = array();
+            $_markerCount    = 0;
 
-        $matching->skip(array(T_WHITESPACE));
+            $rules['method::end'][] = array(
+                array(),
+                function ( $variables ) use ( &$_markerCount, &$_coverageExport ) {
+
+                    $id = $variables['class']['name'] . '::' .
+                          $variables['method']['name'];
+
+                    $_coverageExport[$id] = $_markerCount;
+                    $_markerCount         = 0;
+
+                    return array();
+                }
+            );
+
+            $rules['if::condition::start'][]    =
+            $rules['while::condition::start'][] = array(
+                array('('),
+                function ( $variables ) use ( &$_markerCount ) {
+
+                    $id = $variables['class']['name'] . '::' .
+                          $variables['method']['name'];
+
+                    return array(
+                        '(\atoum\instrumentation\codecoverage::markCondition(' .
+                        '\'' . $id . '\', ' . $_markerCount++ . ', '
+                    );
+                },
+                $matching::SHIFT_REPLACEMENT_END
+            );
+
+            $rules['case::start'][] =
+            $rules['default::start'][] = array(
+                array(':'),
+                function ( $variables ) use ( &$_markerCount ) {
+
+                    $id = $variables['class']['name'] . '::' .
+                          $variables['method']['name'];
+
+                    return array(
+                        ':',
+                        '\atoum\instrumentation\codecoverage::markCondition(' .
+                        '\'' . $id . '\', ' . $_markerCount++ . ', true);'
+                    );
+                },
+                $matching::SHIFT_REPLACEMENT_END
+            );
+
+            $rules['if::condition::end'][]    =
+            $rules['while::condition::end'][] = array(
+                array(')'),
+                array('))'),
+                $matching::SHIFT_REPLACEMENT_END
+            );
+
+            $rules['for::condition::end'][]     =
+            $rules['foreach::condition::end'][] = array(
+                array(')', '{'),
+                function ( $variables ) use ( &$_markerCount ) {
+
+                    $id = $variables['class']['name'] . '::' .
+                          $variables['method']['name'];
+
+                    return array(
+                        ')',
+                        '{',
+                        '\atoum\instrumentation\codecoverage::markCondition(' .
+                        '\'' . $id . '\', ' . $_markerCount++ . ', true);'
+                    );
+                },
+                $matching::SHIFT_REPLACEMENT_END
+            );
+
+            $rules['if::block::end'][]      =
+            $rules['else::block::end'][]    =
+            $rules['while::block::end'][]   =
+            $rules['for::block::end'][]     =
+            $rules['foreach::block::end'][] = array(
+                array('}'),
+                function ( $variables ) use ( &$_markerCount ) {
+
+                    $id = $variables['class']['name'] . '::' .
+                          $variables['method']['name'];
+
+                    return array(
+                        '}',
+                        '\atoum\instrumentation\codecoverage::markJoin(' .
+                        '\'' . $id . '\', ' . $_markerCount++ . ');'
+                    );
+                },
+                $matching::SHIFT_REPLACEMENT_END
+            );
+
+            $rules['else::block::start'][] = array(
+                array('{'),
+                function ( $variables ) use ( &$_markerCount ) {
+
+                    $id = $variables['class']['name'] . '::' .
+                          $variables['method']['name'];
+
+                    return array(
+                        '{',
+                        '\atoum\instrumentation\codecoverage::markCondition(' .
+                        '\'' . $id . '\', ' . $_markerCount++ . ', true);'
+                    );
+                },
+                $matching::SHIFT_REPLACEMENT_END
+            );
+
+            $rules['file::end'][] = array(
+                array(),
+                function ( $variables ) use ( &$_coverageExport ) {
+
+                    return array(
+                        '\atoum\instrumentation\codecoverage::export(' .
+                        var_export($_coverageExport, true) .
+                        ');'
+                    );
+                }
+            );
+        }
+
+        $matching->skip(array(T_WHITESPACE, T_COMMENT, T_DOC_COMMENT));
         $matching->match($rules);
 
         $buffer = null;

@@ -11,7 +11,7 @@ array_shift($argv);
 $options = array();
 
 foreach($argv as $argument)
-    if('-' === $argument[0])
+    if('-' === $argument[0] || '+' === $argument[0])
         $options[] = $argument;
     else
         $file = $argument;

@@ -64,15 +64,14 @@ class wrapper {
 
         $options    = $matches['options'];
         $parameters = array(
-            'edges' => true,
-            'nodes' => true,
-            'moles' => true
+            'coverage-transition' => true,
+            'moles'               => true
         );
 
         if(!empty($options)) {
 
             preg_match_all(
-                '#(?<flag>[+\-])?(?<option>\w+)#',
+                '#(?<flag>[+\-])?(?<option>[\w\-]+)#',
                 $options,
                 $submatches,
                 PREG_SET_ORDER
