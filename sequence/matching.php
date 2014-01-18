@@ -756,7 +756,7 @@ class matching {
             $this->_sequence[$i] = array(
                 -1,
                 $this->_sequence[$i],
-                0 < $i ? $this->_sequence[$i - 1][2] : 0
+                0 < $i ? $this->getToken($i - 1, static::TOKEN_LINE) : 0
             );
 
         if(static::TOKEN_ALL === $index)
