@@ -25,15 +25,17 @@ class codecoverage {
 
     public static function markCondition ( $id, $index, $condition ) {
 
-        static::$_scores[$id][$index] =    static::$_scores[$id][$index]
-                                        || true == $condition;
+        if(isset(static::$_scores[$id]))
+            static::$_scores[$id][$index] =    static::$_scores[$id][$index]
+                                            || true == $condition;
 
         return $condition;
     }
 
     public static function markJoin ( $id, $index ) {
 
-        static::$_scores[$id][$index] = true;
+        if(isset(static::$_scores[$id]))
+            static::$_scores[$id][$index] = true;
 
         return;
     }
