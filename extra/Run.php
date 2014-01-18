@@ -16,6 +16,9 @@ foreach($argv as $argument)
     else
         $file = $argument;
 
-echo file_get_contents(
+$out = file_get_contents(
     'instrument://options=' . implode(',', $options) . '/resource=' . $file
 );
+
+if(false === in_array('-out', $options))
+    echo $out;
