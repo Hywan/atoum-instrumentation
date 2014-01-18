@@ -575,9 +575,6 @@ class matching {
         $length  = 0;
         $matches = array();
 
-        if(true === $this->skipable($i))
-            return;
-
         foreach($this->_rules as $rule) {
 
             list($pattern, $replace) = $rule;
