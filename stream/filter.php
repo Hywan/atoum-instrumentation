@@ -215,15 +215,7 @@ class filter extends \php_user_filter {
         $matching->skip(array(T_WHITESPACE, T_COMMENT, T_DOC_COMMENT));
         $matching->match($rules);
 
-        $buffer = null;
-
-        foreach($matching->getSequence() as $token)
-            if(is_array($token))
-                $buffer .= $token[$matching::TOKEN_VALUE];
-            else
-                $buffer .= $token;
-
-        $this->_buffer = $buffer;
+        $this->_buffer = $matching->__toString();
 
         return;
     }
