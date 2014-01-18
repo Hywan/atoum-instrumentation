@@ -63,6 +63,54 @@
     .👎 {
         color: red;
     }
+
+    svg {
+        margin: 0; auto;
+        border: 1px black solid;
+        text-align: center;
+    }
+
+    svg rect, svg path {
+        fill: none;
+        stroke: #000;
+        stroke-width: .5;
+        stroke-linejoin: round;
+    }
+
+    svg rect {
+        stroke-linecap: round;
+    }
+
+    svg text {
+        font-family: "Andale Mono";
+        font-size: 10pt;
+        text-anchor: middle;
+        dominant-baseline: middle;
+    }
+
+    svg text.small {
+        font-size: 5pt;
+    }
+
+    svg .fill {
+        fill: #000;
+    }
+
+    svg .control > rect {
+        fill: #fff;
+    }
+
+    svg .annotation > text {
+        font-size: 10pt;
+    }
+
+    svg .start {
+        text-anchor: start;
+    }
+
+    svg .end {
+        text-anchor: end;
+    }
   </style>
 </head>
 <body>
@@ -83,20 +131,22 @@
   performance, to diagnose errors and to write trace information. […]
   Instrumentation approaches can be of two types, source instrumentation and
   binary instrumentation.</blockquote>
-  <p>PHP is interpreted, so we have to rely only on source code.</p>
+  <p>PHP is interpreted, so we have to rely only on source code, not the
+  binary.</p>
 </section>
 
 <section>
   <h1>Usual process</h1>
 
-  <p>How to instrument a language? Interfere in the compiling process:</p>
+  <p>How to instrument a language? Interfere in its compiling process, which
+  is:</p>
   <ul>
     <li>lexically analyze the source code,</li>
     <li data-item="+">modify the produced tokens sequence,</li>
     <li>syntactically analyze the resulting tokens sequence,</li>
-    <li>build an AST,</li>
+    <li>build an AST (if available),</li>
     <li>interprete (= execute) or compile (= transform into another language)
-    the AST.</li>
+    it.</li>
   </ul>
 </section>
 
@@ -130,13 +180,13 @@
   <p>What we have to do to instrument a file on-the-fly:</p>
   <pre><code class="language-php">require 'instrument://Foo.php';</code></pre>
   <p><code>instrument://</code> is a user-defined stream wrapper:</p>
-  <ul>
+  <ol>
     <li>get the resource name to interprete (<code>Foo.php</code>),</li>
     <li>get some options for the instrumentation,</li>
     <li>open the resource,</li>
     <li><strong>apply the <code>instrument</code> filter on the
     resource</strong>.</li>
-  </ul>
+  </ol>
   <p>Tips: autoloaders simply prefix URI by <code>instrument://</code>!</p>
 </section>
 
@@ -176,10 +226,11 @@
   </ul>
   <p>… until reaching the end of the sequence; then reconstitute the source and
   let PHP do the rest!</p>
-  <p>Example, search <code class="language-php">['if', '(', …, ')']</code>
-  and replace by <code class="language-php">['if', '(', 'mark_cond(\3)',
-  ')']</code>. Thus: <code class="language-php">if('bar' === $baz)</code>
-  becomes: <code class="language-php">if(mark_cond('bar' === $baz))</code>.</p>
+  <p>Trivial example: search <code class="language-php">['if', '(', …,
+  ')']</code> and replace by <code class="language-php">['if', '(',
+  'mark_cond(\3)', ')']</code>. Thus: <code class="language-php">if('bar' ===
+  $baz)</code> becomes: <code class="language-php">if(mark_cond('bar' ===
+  $baz))</code>.</p>
 </section>
 
 <section>
@@ -222,7 +273,7 @@
 
   <p>A mock is a class <code>MC</code> that <strong>extends</strong> an existing
   one <code>C</code>.</p>
-  <p>Each method can be redefined/re-implemented.</p>
+  <p>Almost each method can be redefined/re-implemented.</p>
   <p>Current issues:</p>
   <ul>
     <li>redefining private methods is not possible,</li>
@@ -246,7 +297,7 @@
   <pre><code class="language-php">    public function f ( $x, $y ) {
 
         if(true === mole_exists('C::f'))
-            return mole_call('C::f', $this, func_get_args());
+            return mole_call([$this, 'f'], func_get_args());
 
         // …
     }</code></pre>
@@ -331,12 +382,74 @@ var_dump($c->f(42)); // int(21)</code></pre>
         <td class="👎">✖︎</td>
         <td class="👍">✔︎</td>
       </tr>
+      <tr>
+        <td>modify existing code</td>
+        <td class="👍">✔︎</td>
+        <td class="👎">✖︎</td>
+      </tr>
     </tbody>
   </table>
 </section>
 
 <section class="chapter">
   <h1>4 <span>Code coverage</span></h1>
+</section>
+
+<section>
+  <h1>Control Flow Graph</h1>
+</section>
+
+<section>
+  <h1>Hierarchy of code coverage criteria</h1>
+
+  <svg height="375" viewBox="0 0 300 200">>
+    <g class="control">
+      <path d="M 225, 120 L 225,  20" class="dashed" />
+      <path d="M 225, 160 L 225, 120" />
+      <path d="M 225, 180 L 225, 160" />
+
+      <path d="M 225, 160 L 120, 125" />
+      <path d="M  75, 160 L 120, 125" />
+      <path d="M  75, 160 L  30, 125" />
+
+      <path d="M  30, 125 L  75,  80" />
+      <path d="M 120, 125 L  75,  80" />
+      <path d="M  75,  80 L  75,  60" />
+      <path d="M  75,  60 L 225,  20" />
+
+      <rect x="185"  y="12" width="80" height="16" rx="5" ry="5" />
+      <rect x="185" y="112" width="80" height="16" rx="5" ry="5" />
+      <rect x="185" y="152" width="80" height="16" rx="5" ry="5" />
+      <rect x="185" y="172" width="80" height="16" rx="5" ry="5" />
+
+      <rect  x="1" y="112" width="58" height="26" rx="5" ry="5" />
+      <rect  x="91" y="112" width="58" height="26" rx="5" ry="5" />
+
+      <rect  x="25" y="152" width="100" height="16" rx="5" ry="5" />
+      <rect  x="25"  y="72" width="100" height="16" rx="5" ry="5" />
+      <rect  x="25"  y="52" width="100" height="16" rx="5" ry="5" />
+    </g>
+
+    <g class="label">
+      <text x="225" y="20" class="small">all-paths</text>
+      <text x="225" y="120" class="small">all-i-paths</text>
+      <text x="225" y="160" class="small">all-transitions</text>
+      <text x="225" y="180" class="small">all-nodes</text>
+
+      <text x="30" y="120" class="small">all-c-</text>
+      <text x="30" y="130" class="small">uses</text>
+      <text x="120" y="120" class="small">all-p-</text>
+      <text x="120" y="130" class="small">uses</text>
+
+      <text x="75" y="60" class="small">all-DU-paths</text>
+      <text x="75" y="80" class="small">all-uses</text>
+      <text x="75" y="160" class="small">all-definitions</text>
+    </g>
+  </svg>
+</section>
+
+<section>
+  <h1>Criterion: “all-transitions”</h1>
 </section>
 
 <div id="progress-bar"></div>
