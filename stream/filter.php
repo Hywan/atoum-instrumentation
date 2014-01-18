@@ -64,7 +64,7 @@ class filter extends \php_user_filter {
         if(true === $enabled('moles'))
             $rules['method::start'][] = array(
                 array('{'),
-                function ( Array $variables ) use ( &$_markerCount, &$_coverageExport ) {
+                function ( Array $variables ) use ( &$_markerCount ) {
 
                     $class = '\atoum\instrumentation\mole';
 
@@ -77,9 +77,8 @@ class filter extends \php_user_filter {
 
                     $id = $variables['class']['name'] . '::' .
                           $variables['method']['name'];
-                    $_coverageExport[$id] = $_markerCount;
 
-                    $code = ' if(' . $class . '::exists(array(' . $callable . '))) ' .
+                    $code = 'if(' . $class . '::exists(array(' . $callable . '))) ' .
                             'return ' . $class . '::call(' .
                                 'array(' . $callable . '), func_get_args()' .
                             '); ' .
@@ -95,6 +94,22 @@ class filter extends \php_user_filter {
 
             $_coverageExport = array();
             $_markerCount    = 0;
+
+            if(false === $enabled('moles'))
+                $rules['method::start'][] = array(
+                    array('{'),
+                    function ( Array $variables ) use ( &$_markerCount ) {
+
+                        $id = $variables['class']['name'] . '::' .
+                              $variables['method']['name'];
+
+                        return array(
+                            '{',
+                            '\atoum\instrumentation\codecoverage::mark(\'' .
+                            $id . '\', ' . $_markerCount++ . ');'
+                        );
+                    }
+                );
 
             $rules['method::end'][] = array(
                 array(),
@@ -119,7 +134,8 @@ class filter extends \php_user_filter {
                           $variables['method']['name'];
 
                     return array(
-                        '(\atoum\instrumentation\codecoverage::markCondition(' .
+                        '(',
+                        '\atoum\instrumentation\codecoverage::markCondition(' .
                         '\'' . $id . '\', ' . $_markerCount++ . ', '
                     );
                 },
