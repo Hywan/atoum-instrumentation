@@ -353,11 +353,6 @@ class matching {
                                 || T_COMMENT     === $previousToken
                                 || T_DOC_COMMENT === $previousToken);
 
-                        $previousToken = $this->getNextSignificantToken(
-                            $flyingIndex,
-                            static::TOKEN_ID
-                        );
-
                         if(T_STATIC === $previousToken)
                             $this->_variables['method']['static'] = true;
                         elseif(T_PUBLIC === $previousToken)
@@ -366,6 +361,8 @@ class matching {
                             $this->_variables['method']['visibility'] = 'protected';
                         elseif(T_PRIVATE === $previousToken)
                             $this->_variables['method']['visibility'] = 'private';
+                        else
+                            break;
                     }
 
                     $this->_variables['method']['name'] = $this->getNextSignificantToken(
