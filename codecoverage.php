@@ -23,6 +23,12 @@ class codecoverage {
         return;
     }
 
+    public static function mark ( $id, $index ) {
+
+        if(isset(static::$_scores[$id]))
+            static::$_scores[$id][$index] = true;
+    }
+
     public static function markCondition ( $id, $index, $condition ) {
 
         if(isset(static::$_scores[$id]))

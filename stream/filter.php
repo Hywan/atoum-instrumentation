@@ -64,7 +64,7 @@ class filter extends \php_user_filter {
         if(true === $enabled('moles'))
             $rules['method::start'][] = array(
                 array('{'),
-                function ( Array $variables ) {
+                function ( Array $variables ) use ( &$_markerCount, &$_coverageExport ) {
 
                     $class = '\atoum\instrumentation\mole';
 
@@ -75,10 +75,16 @@ class filter extends \php_user_filter {
                         $callable = '$this, ' .
                                     '\'' . $variables['method']['name'] . '\'';
 
+                    $id = $variables['class']['name'] . '::' .
+                          $variables['method']['name'];
+                    $_coverageExport[$id] = $_markerCount;
+
                     $code = ' if(' . $class . '::exists(array(' . $callable . '))) ' .
                             'return ' . $class . '::call(' .
                                 'array(' . $callable . '), func_get_args()' .
-                            ');';
+                            '); ' .
+                            '\atoum\instrumentation\codecoverage::mark(\'' .
+                            $id . '\', ' . $_markerCount++ . ');';
 
                     return array('{', $code);
                 },
