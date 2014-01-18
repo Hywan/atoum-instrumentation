@@ -203,9 +203,10 @@ class filter extends \php_user_filter {
                 function ( $variables ) use ( &$_coverageExport ) {
 
                     return array(
+                        'namespace { ' .
                         '\atoum\instrumentation\codecoverage::export(' .
                         var_export($_coverageExport, true) .
-                        ');'
+                        '); }'
                     );
                 }
             );
