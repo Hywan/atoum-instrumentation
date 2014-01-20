@@ -59,7 +59,9 @@ class filter extends \php_user_filter {
             return    isset($parameters[$parameter])
                    && true === $parameters[$parameter];
         };
-        $…          = \atoum\instrumentation\sequence\…;
+        $…               = \atoum\instrumentation\sequence\…;
+        $_coverageExport = array();
+        $_markerCount    = 0;
 
         if(true === $enabled('moles'))
             $rules['method::start'][] = array(
@@ -91,9 +93,6 @@ class filter extends \php_user_filter {
             );
 
         if(true === $enabled('coverage-transition')) {
-
-            $_coverageExport = array();
-            $_markerCount    = 0;
 
             if(false === $enabled('moles'))
                 $rules['method::start'][] = array(
