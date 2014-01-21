@@ -140,6 +140,7 @@ class matching {
                     )
                 )
             );
+            $this->_max = count($this->_sequence) - 1;
 
             return true;
         }
@@ -157,6 +158,7 @@ class matching {
                 )
             )
         );
+        $this->_max = count($this->_sequence) - 1;
 
         // statement is a structure.
         if(true === in_array($nextToken[static::TOKEN_ID], static::$_structures)) {
@@ -223,6 +225,7 @@ class matching {
                     )
                 )
             );
+            $this->_max = count($this->_sequence) - 1;
 
             return true;
         }
@@ -254,6 +257,7 @@ class matching {
                 )
             )
         );
+        $this->_max = count($this->_sequence) - 1;
 
         return true;
     }
