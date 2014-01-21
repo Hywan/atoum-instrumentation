@@ -12,7 +12,7 @@ function f ( ) {
             if(2)$x++;
             else
                 while(false);
-    elseif(2)$c = function ( ) { $i; $j; $k; };
+    else if(2)$c = function ( ) { $i; $j; $k; };
     else++$x;
 }
 CODE;

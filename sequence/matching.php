@@ -90,7 +90,34 @@ class matching {
         if(false === in_array($token[static::TOKEN_ID], static::$_structures))
             return false;
 
-        $tokenId               = $token[static::TOKEN_ID];
+        $tokenId = $token[static::TOKEN_ID];
+
+        if(T_ELSE === $tokenId) {
+
+            $nextIndex   = $index;
+            $nextTokenId = $this->getNextSignificantToken(
+                $nextIndex,
+                static::TOKEN_ID
+            );
+
+            if(T_IF === $nextTokenId) {
+
+                $token[static::TOKEN_ID]    = T_ELSEIF;
+                $token[static::TOKEN_VALUE] = 'elseif';
+                array_splice(
+                    $this->_sequence,
+                    $index,
+                    $nextIndex - $index + 1,
+                    array(
+                        $token
+                    )
+                );
+                $this->_max = count($this->_sequence) - 1;
+
+                return $this->addMissingBrackets($index);
+            }
+        }
+
         $rightParenthesisIndex = $index;
         $opened                = 0;
 
