@@ -4,11 +4,11 @@ namespace atoum\instrumentation\sequence;
 
 const … = '__atoum_fill';
 
-!defined('T_FINALLY')   && define('T_FINALLY', 340);
-!defined('T_INSTEADOF') && define('T_INSTEADOF', 343);
-!defined('T_TRAIT')     && define('T_TRAIT', 357);
-!defined('T_TRAIT_C')   && define('T_TRAIT_C', 367);
-!defined('T_YIELD')     && define('T_YIELD', 267);
+!defined('T_FINALLY')   && define('T_FINALLY',   -2);
+!defined('T_INSTEADOF') && define('T_INSTEADOF', -2);
+!defined('T_TRAIT')     && define('T_TRAIT',     -2);
+!defined('T_TRAIT_C')   && define('T_TRAIT_C',   -2);
+!defined('T_YIELD')     && define('T_YIELD',     -2);
 
 class matching {
 
