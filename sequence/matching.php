@@ -601,24 +601,20 @@ class matching {
 
     protected function _match ( ) {
 
-        $i       = $this->_index;
-        $set     = null;
-        $length  = 0;
-        $matches = array();
+        $index         = $this->_index;
+        $selectedRules = array();
 
         foreach($this->_rules as $rule) {
 
-            list($pattern, $replace) = $rule;
+            $i       = $index;
+            $pattern = $rule[0];
+            $length  = 0;
 
             if(empty($pattern)) {
 
-                $set = $rule;
-                break;
+                $selectedRules[] = array($rule, $length);
+                continue;
             }
-
-            $gotcha  = false;
-            $length  = 0;
-            $matches = array();
 
             for($j = 0, $max = count($pattern) - 1;
                 $j <= $max && $i + $j < $this->_max;
@@ -633,135 +629,79 @@ class matching {
                     continue;
                 }
 
-                $token    = $this->getToken($i + $j, static::TOKEN_VALUE);
-                $pToken   = $pattern[$j];
-                $_matches = null;
+                $realToken    = $this->getToken($i + $j, static::TOKEN_VALUE);
+                $patternToken = $pattern[$j];
 
-                if(… === $pToken) {
+                if($realToken !== $patternToken)
+                    continue 2;
 
-                    $pNextToken = $pattern[$j + 1];
-                    $_length    = 0;
-                    $_skipped   = null;
-
-                    for($_i = $i + $j, $_max = $this->_max - 1;
-                        $_i <= $_max && ++$_length;
-                        ++$_i) {
-
-                        if(true === $this->skipable($_i)) {
-
-                            $_skipped .= $this->getToken($_i, static::TOKEN_VALUE);
-
-                            continue;
-                        }
-
-                        $nextToken = $this->getToken($_i, static::TOKEN_VALUE);
-                        $gotcha    = $pNextToken === $nextToken;
-
-                        if(true === $gotcha) {
-
-                            $length += $_length;
-                            ++$j;
-
-                            if(   isset($pattern[$j + 1])
-                               && … === $pattern[$j + 1])
-                                $i++;
-
-                            $matches[] = $_matches;
-                            $_matches  = $_skipped . $nextToken;
-                            $_skipped  = null;
-
-                            break;
-                        }
-                        else {
-
-                            $_matches .= $_skipped . $nextToken;
-                            $_skipped  = null;
-                        }
-                    }
-                }
-                else {
-
-                    $gotcha = $pToken === $token;
-
-                    if(true === $gotcha) {
-
-                        ++$length;
-                        $_matches = $token;
-                    }
-                }
-
-                if(false === $gotcha)
-                    break;
-                elseif(null !== $_matches)
-                    $matches[] = $_matches;
+                ++$length;
             }
 
-            if(true === $gotcha) {
-
-                $set = $rule;
-                break;
-            }
+            $selectedRules[] = array($rule, $length);
         }
 
-        if(null === $set)
-            return;
+        foreach($selectedRules as $bucket) {
 
-        if(is_array($set[1]))
-            foreach($set[1] as &$_tokens) {
+            list($rule, $length) = $bucket;
+            list($pattern, $replace) = $rule;
 
-                if(false === strpos($_tokens, '\\'))
-                    continue;
+            if(is_array($replace)) {
 
-                $_tokens = preg_replace_callback(
-                    '#\\\(\w+)\.(\w+)#',
-                    function ( Array $m ) {
+                foreach($replace as &$_tokens) {
 
-                        if(!isset($this->_variables[$m[1]]))
-                            return '';
+                    if(false === strpos($_tokens, '\\'))
+                        continue;
 
-                        if(!isset($this->_variables[$m[1]][$m[2]]))
-                            return '';
+                    $_tokens = preg_replace_callback(
+                        '#\\\(\w+)\.(\w+)#',
+                        function ( Array $m ) {
 
-                        return $this->_variables[$m[1]][$m[2]];
-                    },
-                    $_tokens
-                );
-                $_tokens = preg_replace_callback(
-                    '#\\\(\d+)#',
-                    function ( Array $m ) use ( $matches ) {
+                            if(!isset($this->_variables[$m[1]]))
+                                return '';
 
-                        $x = $m[1] - 1;
+                            if(!isset($this->_variables[$m[1]][$m[2]]))
+                                return '';
 
-                        if(!isset($matches[$x]))
-                            return null;
+                            return $this->_variables[$m[1]][$m[2]];
+                        },
+                        $_tokens
+                    );
+                    $_tokens = preg_replace_callback(
+                        '#\\\(\d+)#',
+                        function ( Array $m ) use ( $matches ) {
 
-                        return $matches[$x];
-                    },
-                    $_tokens
-                );
+                            $x = $m[1] - 1;
+
+                            if(!isset($matches[$x]))
+                                return null;
+
+                            return $matches[$x];
+                        },
+                        $_tokens
+                    );
+                }
             }
-        elseif(is_callable($set[1])) {
+            elseif(is_callable($replace))
+                $replace = $replace($this->_variables);
 
-            $callable = $set[1];
-            $set[1]   = $callable($this->_variables);
-        }
+            array_splice(
+                $this->_sequence,
+                $index,
+                $length,
+                $replace
+            );
 
-        array_splice(
-            $this->_sequence,
-            $this->_index,
-            $length,
-            $set[1]
-        );
+            if(   isset($rule[2])
+               && static::SHIFT_REPLACEMENT_END === $rule[2])
+                $this->_index += count($replace) - 1;
 
-        if(   isset($set[2])
-           && static::SHIFT_REPLACEMENT_END === $set[2])
-            $this->_index += count($set[1]) - 1;
+            if(   isset($rule[3])
+               && is_callable($rule[3])) {
 
-        if(   isset($set[3])
-           && is_callable($set[3])) {
-
-            $callable = $set[3];
-            $callable($this->_variables);
+                $callable = $rule[3];
+                $callable($this->_variables);
+            }
         }
 
         $this->_max = count($this->_sequence) - 1;

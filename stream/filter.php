@@ -83,9 +83,10 @@ class filter extends \php_user_filter {
                     $code = 'if(' . $class . '::exists(array(' . $callable . '))) ' .
                             'return ' . $class . '::call(' .
                                 'array(' . $callable . '), func_get_args()' .
-                            '); ' .
-                            '\atoum\instrumentation\codecoverage::mark(\'' .
-                            $id . '\', ' . $_markerCount++ . ');';
+                            '); ';
+                            //
+                            //'\atoum\instrumentation\codecoverage::mark(\'' .
+                            //$id . '\', ' . $_markerCount++ . ');';
 
                     return array('{', $code);
                 },
@@ -94,21 +95,20 @@ class filter extends \php_user_filter {
 
         if(true === $enabled('coverage-transition')) {
 
-            if(false === $enabled('moles'))
-                $rules['method::start'][] = array(
-                    array('{'),
-                    function ( Array $variables ) use ( &$_markerCount ) {
+            $rules['method::start'][] = array(
+                array('{'),
+                function ( Array $variables ) use ( &$_markerCount ) {
 
-                        $id = $variables['class']['name'] . '::' .
-                              $variables['method']['name'];
+                    $id = $variables['class']['name'] . '::' .
+                          $variables['method']['name'];
 
-                        return array(
-                            '{',
-                            '\atoum\instrumentation\codecoverage::mark(\'' .
-                            $id . '\', ' . $_markerCount++ . ');'
-                        );
-                    }
-                );
+                    return array(
+                        '{',
+                        '\atoum\instrumentation\codecoverage::mark(\'' .
+                        $id . '\', ' . $_markerCount++ . ');'
+                    );
+                }
+            );
 
             $rules['method::end'][] = array(
                 array(),
